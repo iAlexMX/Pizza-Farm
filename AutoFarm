@@ -518,7 +518,7 @@ local function smoothTP2(cf)
 	local diff = cf.p - root.Position
 	local oldg = workspace.Gravity
 	workspace.Gravity = 0
-	for i=0,diff.Magnitude,0.9 do
+	for i=0,diff.Magnitude,3.0 do
 		humanoid.Sit=false
 		root.CFrame = cf0 + diff.Unit * i
 		root.Velocity,root.RotVelocity=Vector3.new(),Vector3.new()
@@ -536,7 +536,7 @@ local function smoothTP(cf)
         table.sort(btns,function(a,b) return (a.Position-cf.p).Magnitude < (b.Position-cf.p).Magnitude end)
         if (btns[1].Position-cf.p).Magnitude < (cf.p-root.Position).Magnitude then
             game:GetService("ReplicatedStorage").PlayerChannel:FireServer("TeleportToJob", ((btns[1].Name == "Marker") and "House" or btns[1].Name))
-            wait(0.7)
+            wait(0.5)
             if (cf.p-root.Position).Magnitude < 8 then
                 return
             end
