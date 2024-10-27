@@ -1,74 +1,361 @@
--- Crea la interfaz básica con solo el botón de Delivery
+getupvalues = getupvalues or debug.getupvalues
+setupvalue = setupvalue or debug.setupvalue
+if not (getrawmetatable and getupvalues and setupvalue and (getreg or debug.getregistry)) then
+    local h = Instance.new("Hint", workspace)
+    h.Text = "Incompatible exploit."
+    wait(3)
+    h:Destroy()
+    return
+end
+
+local settings = {refill_at=0, refill_end=60, deliver_at=24, stay_in_kitchen=true}
+local doCashier, doBoxer, doCook, doSupplier, doDelivery = false, false, false, false, false
+
+if readfile then
+    pcall(function()
+        local new = game:GetService("HttpService"):JSONDecode(readfile("PizzaFarm.txt"))
+        --corruption?
+        local doOverwrite = false
+        for k, v in pairs(new) do
+            if settings[k] == nil then
+                doOverwrite = true
+                new[k] = nil
+            end
+        end
+        for k, v in pairs(settings) do
+            if new[k] == nil then
+                doOverwrite = true
+                new[k] = v
+            end
+        end
+        --use input
+        if doOverwrite then
+            warn("Settings overwritten")
+            writefile("PizzaFarm.txt", game:GetService("HttpService"):JSONEncode(new))
+        end
+        settings = new
+    end)
+end
+
+if getconnections then
+    for _, c in next, getconnections(game:GetService("ScriptContext").Error) do
+        c:Disable()
+    end
+end
+
+local player = game:GetService("Players").LocalPlayer
+local ffc = game.FindFirstChild
+local RNG = Random.new()
+local network
+local character, root, humanoid
+
+do
+    local reg = (getreg or debug.getregistry)()
+    for i = 1, #reg do
+        local f = reg[i]
+        if type(f) == "function" then
+            for k, v in next, getupvalues(f) do
+                if typeof(v) == "Instance" then
+                    if v.Name == "CashOut" then
+                        setupvalue(f, k, {MouseButton1Click = {wait = function() end, Wait = function() end}})
+                    elseif v.Name == "StickerName" then
+                        setupvalue(f, k, nil)
+                    end
+                end
+            end
+            if tostring(getfenv(f).script) == "Music" then
+                local consts = getconstants(f)
+                local loc = false
+                for ci, c in next, consts do
+                    if c == "location changed" then
+                        loc = true
+                    elseif loc and c == "SendData" then
+                        setconstant(f, ci, "ExplodeString")
+                        break
+                    end
+                end
+            end
+        elseif type(f) == "table" and rawget(f, "FireServer") and rawget(f, "BindEvents") then
+            network = f
+        end
+    end
+end
+
+assert(network, "failed to find network")
+
+--//gui
 Create = function(class, parent, props)
     local new = Instance.new(class)
-    for k, v in pairs(props) do
+    for k, v in next, props do
         new[k] = v
     end
     new.Parent = parent
     return new
 end
 
--- Crear GUI
-local gui = Create("ScreenGui", game.CoreGui, { Name = "Farm", ZIndexBehavior = "Sibling" })
-local main = Create("Frame", gui, {
-    Name = "main", Draggable = true, Active = true,
-    Size = UDim2.new(0, 200, 0, 50),
-    Position = UDim2.new(0.335, 0, 0.02, 0),
-    BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-})
+gui = Create("ScreenGui", game.CoreGui, {Name = "Farm", ZIndexBehavior = "Sibling"})
+main = Create("Frame", gui, {Name = "main", Draggable = true, Active = true, Size = UDim2.new(0, 350, 0, 100), Position = UDim2.new(.335, 0, 0.02, 0), BackgroundColor3 = Color3.new(0.098, 0.098, 0.098)})
+topbar = Create("Frame", main, {Name = "topbar", Size = UDim2.new(1, 0, 0.15, 0), BackgroundColor3 = Color3.new(0.255, 0.255, 0.255)})
+closeBtn = Create("TextButton", topbar, {Name = "closeBtn", TextWrapped = true, Size = UDim2.new(0.03, 0, 1, 0), TextColor3 = Color3.new(1, 1, 1), Text = "X", BackgroundTransparency = 1, 
+    Font = "GothamSemibold", Position = UDim2.new(0.96, 0, 0, 0), TextSize = 14, TextScaled = true, BackgroundColor3 = Color3.new(1, 1, 1)})
+titleLbl = Create("TextLabel", topbar, {Name = "titleLbl", TextWrapped = true, Size = UDim2.new(0.5, 0, 1, 0), Text = "Pizza Factory (BETA)", TextSize = 14, Font = "GothamSemibold", 
+    BackgroundTransparency = 1, Position = UDim2.new(0.25, 0, 0, 0), TextColor3 = Color3.new(1, 1, 1), BackgroundColor3 = Color3.new(1, 1, 1)})
+saveBtn = Create("ImageButton", topbar, {Name = "saveBtn", Image = "rbxassetid://55687833", Size = UDim2.new(0.05, 0, 1, 0), Position = UDim2.new(0.01, 0, 0, 0), BackgroundTransparency = 1, BackgroundColor3 = Color3.new(), Visible = writefile ~= nil})
+settings_1 = Create("Frame", main, {Name = "settings", BackgroundTransparency = 1, Size = UDim2.new(0.97, 0, 0.75, 0), Position = UDim2.new(0.025, 0, 0.2, 0), BackgroundColor3 = Color3.new(1, 1, 1)})
+Layout = Create("UIGridLayout", settings_1, {VerticalAlignment = "Center", SortOrder = "LayoutOrder", HorizontalAlignment = "Center", CellPadding = UDim2.new(0.01, 0, 0.1, 0), CellSize = UDim2.new(0.325, 0, 0.26, 0)})
 
--- Título y botón de entrega
-Create("TextLabel", main, {
-    Name = "titleLbl", Text = "Teletransporte",
-    TextSize = 14, Font = "GothamSemibold",
-    Size = UDim2.new(1, 0, 0.5, 0),
-    BackgroundTransparency = 1,
-    TextColor3 = Color3.new(1, 1, 1)
-})
-local deliveryBtn = Create("TextButton", main, {
-    Name = "deliveryBtn", Text = "Activar Teletransporte",
-    TextSize = 14, Font = "GothamSemibold",
-    Size = UDim2.new(1, 0, 0.5, 0),
-    Position = UDim2.new(0, 0, 0.5, 0),
-    BackgroundColor3 = Color3.new(0.4, 0.4, 0.4),
-    TextColor3 = Color3.new(1, 1, 1)
-})
+-- (Rest of the GUI code omitted for brevity)
 
--- Variable de control
-local doDelivery = false
-local player = game.Players.LocalPlayer
+--//subroutines
+local supplyCounts = {TomatoSauce = 99, Cheese = 99, Sausage = 99, Pepperoni = 99, Dough = 99, Box = 99, Dew = 99}
+for name in pairs(supplyCounts) do
+    local lbl = workspace.SupplyCounters.Model[name == "Dew" and "CounterMountainDew" or "Counter" .. name].a.SG.Counter
+    supplyCounts[name] = tonumber(lbl.Text)
+    lbl.Changed:Connect(function()
+        supplyCounts[name] = tonumber(lbl.Text)
+    end)
+end
 
--- Función para teletransportar entre casas cada 12 segundos
-local function teletransportarCasas()
-    local casas = workspace.Houses:GetChildren()
-    local index = 1
+-- (Rest of the subroutines omitted for brevity)
 
-    while doDelivery do
-        local casaActual = casas[index]
-        if casaActual then
-            -- Buscar la primera parte de la casa
-            local posicionCasa = casaActual:FindFirstChildOfClass("Part")
-            if posicionCasa then
-                player.Character.HumanoidRootPart.CFrame = CFrame.new(posicionCasa.Position.X, posicionCasa.Position.Y + 7, posicionCasa.Position.Z)
-            else
-                warn("Casa sin una parte válida encontrada, saltando a la siguiente.")
+--//main loop
+while gui.Parent do
+    wait(0.9)
+    humanoid.Sit = false
+    if RNG:NextInteger(1, 20) == 1 then
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, "Z", false, game)
+        wait()
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, "Z", false, game)
+    end
+    for zz = 1, 3 do
+        local c, order = FindFirstCustomer()
+        if doCashier and c and order then
+            local reg = 3
+            if c.Head.Position.X < 50 then
+                reg = 2
+            elseif c.Head.Position.X < 70 then
+                reg = 1
             end
+            if (root.Position - Vector3.new(50.30, 3.80, 83.24)).magnitude > 9 then smoothTP(CFrame.new(50.30, 3.80, 83.24)) wait(.1) end
+            network:FireServer("OrderComplete", c, order, workspace["Register" .. reg])
+            wait(0.3)
         else
-            warn("Casa no válida encontrada, saltando a la siguiente.")
+            break
         end
-        wait(12)
-        index = index + 1
-        if index > #casas then
-            index = 1
+    end
+    tryCook()
+    for zz = 1, 7 do
+        if doBoxer then
+            local didsomething = false
+            local boxP, boxD = FindBoxingFoods()
+            local closedBox, openBox, fullBox = FindBoxes()
+            if boxD and tick() - boxDtick > 0.8 then
+                boxDtick = tick()
+                didsomething = true
+                if (root.Position - Vector3.new(58.74, 3.80, 12.400)).magnitude > 9 then smoothTP(CFrame.new(58.74, 3.80, 12.40)) wait(.1) continue end
+                network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63, 4.9, -1, -1, 0, 0, 0, 1, 0, 0, 0, -1))
+            end
+            if fullBox then
+                if fullBox.Name == "BoxOpen" then
+                    didsomething = true
+                    if (root.Position - Vector3.new(58.74, 3.80, 12.400)).magnitude > 9 then smoothTP(CFrame.new(58.74, 3.80, 12.40)) wait(.1) continue end
+                    network:FireServer("CloseBox", fullBox)
+                elseif tick() - boxPtick > 0.8 then
+                    didsomething = true
+                    if (root.Position - Vector3.new(58.74, 3.80, 12.400)).magnitude > 9 then smoothTP(CFrame.new(58.74, 3.80, 12.40)) wait(.1) continue end
+                    network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.2, 4.4, RNG:NextNumber(-3, -2), -1, 0, 0, 0, 1, 0, 0, 0, -1))
+                    boxPtick = tick()
+                end
+            end
+            if closedBox and not openBox then
+                didsomething = true
+                if (root.Position - Vector3.new(58.74, 3.80, 12.400)).magnitude > 9 then smoothTP(CFrame.new(58.74, 3.80, 12.40)) wait(.1) continue end
+                network:FireServer("UpdateProperty", closedBox, "CFrame", CFrame.new(RNG:NextNumber(62.5, 70.5), 3.5, RNG:NextNumber(11, 25)))
+                wait()
+                network:FireServer("OpenBox", closedBox)
+            end
+            if openBox and boxP then
+                didsomething = true
+                if (root.Position - Vector3.new(58.74, 3.80, 12.400)).magnitude > 9 then smoothTP(CFrame.new(58.74, 3.80, 12.40)) wait(.1) continue end
+                network:FireServer("UpdateProperty", boxP, "Anchored", true)
+                network:FireServer("UpdateProperty", openBox, "Anchored", true)
+                wait()
+                network:FireServer("UpdateProperty", boxP, "CFrame", openBox.CFrame + Vector3.new(0, -2, 0))
+                wait()
+                network:FireServer("AssignPizzaToBox", openBox, boxP)
+            end
+            if didsomething then wait(0.5) else break end
+        else
+            break
+        end
+    end
+
+    if doDelivery then
+        -- Verificar si hay "CandyBucket" en el inventario
+        local hasCandyBucket = false
+        for _, item in pairs(player.Backpack:GetChildren()) do
+            if item.Name == "CandyBucket" then
+                hasCandyBucket = true
+                humanoid:EquipTool(item) -- Equipar el CandyBucket
+                break
+            end
+        end
+
+        -- Si el jugador tiene el CandyBucket, proceder a la entrega
+        if hasCandyBucket then
+            local wstools = FindAllDeliveryTools(workspace)
+            if #wstools > 1 or (wstools[1] and ffc(wstools[1].Handle, "X10")) then
+                -- Obtener herramientas
+                if (root.Position - Vector3.new(54.45, 4.02, -15)).Magnitude > 9 then
+                    smoothTP(CFrame.new(54.45, 4.02, -15))
+                    wait(0.1)
+                end
+                for i = 1, #wstools do
+                    if wstools[i].Parent == workspace then
+                        humanoid:EquipTool(wstools[i])
+                        wait()
+                    end
+                end
+                wait(0.3)
+                local t = FindAllDeliveryTools(character)
+                for i = 1, #t do
+                    t[i].Parent = player.Backpack
+                end
+                wait(0.1)
+                if ffc(character, "RightHand") and ffc(character.RightHand, "RightGrip") then
+                    character.RightHand.RightGrip:Destroy()
+                end
+            end
+
+            local bptools = FindAllDeliveryTools(player.Backpack)
+            if #bptools >= settings.deliver_at and #bptools > 0 and tick() - delTick > 30 then
+                -- Entregar a las casas
+                table.sort(bptools, function(a, b)
+                    a, b = tostring(a), tostring(b)
+                    if (a:sub(1, 1) == "B" and b:sub(1, 1) == "B") then
+                        return a < b
+                    end
+                    return a > b
+                end)
+
+                for i = 1, #bptools do
+                    if not doDelivery then
+                        break
+                    end
+                    humanoid.Sit = false
+                    local tool = bptools[i]
+                    local giver = getHousePart(tool.Name)
+                    if giver then
+                        smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse a la casa
+                        wait(12) -- Esperar 12 segundos en cada casa
+                        pcall(function() tool.Parent = character end)
+                        wait(2)
+                    end
+                end
+                delTick = tick() -- Reiniciar el temporizador
+            end
+        end
+    end
+
+    tryCook()
+    if doSupplier then
+        local refill = false
+        for s, c in pairs(supplyCounts) do
+            if c <= settings.refill_at then
+                refill = true
+                break
+            end
+        end
+        if refill then
+            local oldcf = root.CFrame
+            local waiting = false
+            local waitingTick = 0
+            local lastBox
+            while doSupplier do
+                --check if refill is done otherwise hit buttons
+                local fulfilled = true
+                local boxes = workspace.AllSupplyBoxes:GetChildren()
+                for yy = 1, 2 do
+                    local needtp = true
+                    local realc = 0
+                    for _, btn in ipairs(supplyButtons) do
+                        local s = bcolorToSupply[btn.BrickColor.Name]
+                        if supplyCounts[s] < settings.refill_end then
+                            local count = 0
+                            if #boxes > 30 then
+                                for i = 1, #boxes do
+                                    local box = boxes[i]
+                                    if bcolorToSupply[box.BrickColor.Name] == s and box.Anchored == false and box.Position.Z < -940 then
+                                        count = count + 1
+                                    end
+                                end
+                            end
+                            if count < 2 then
+                                if needtp then
+                                    needtp = false
+                                    smoothTP(btn.CFrame + Vector3.new(0, 3, 2.5))
+                                    wait(0.1)
+                                end
+                                if not doSupplier then break end
+                                root.CFrame = btn.CFrame + Vector3.new(0, 3, 0)
+                                wait(0.1)
+                                realc = realc + 1
+                            end
+                            fulfilled = false
+                        end
+                    end
+                    wait(0.2)
+                    if yy == 1 and realc < 3 then
+                        wait(0.6)
+                    end
+                end
+                if fulfilled or not (doSupplier) then
+                    break
+                end
+                smoothTP(CFrame.new(8, 12.4, -1020))
+                if not doSupplier then break end
+                --check if can finish waiting for boxes to move
+                if waiting and (lastBox.Position.X > 42 or tick() - waitingTick > 6) then
+                    waiting = false
+                    if lastBox.Position.X < 42 then
+                        --clear boxes if stuck
+                        smoothTP(CFrame.new(20.5, 8, -35))
+                        wait(0.1)
+                        local boxes = workspace.AllSupplyBoxes:GetChildren()
+                        for i = 1, #boxes do
+                            local box = boxes[i]
+                            if box.Anchored == false and box.Position.Z > -55 then
+                                network:FireServer("UpdateProperty", box, "CFrame", CFrame.new(RNG:NextNumber(0, 40), RNG:NextNumber(-10, -30), -70))
+                                wait()
+                            end
+                        end
+                        wait(0.1)
+                    end
+                end
+                if not waiting then
+                    --move boxes
+                    if root.Position.Z > -900 then smoothTP(CFrame.new(8, 12.4, -1020)) end
+                    wait(0.1)
+                    lastBox = nil
+                    local j = 0
+                    local boxes = workspace.AllSupplyBoxes:GetChildren()
+                    for i = 1, #boxes do
+                        local box = boxes[i]
+                        if box.Anchored == false and box.Position.Z < -940 and bcolorToSupply[box.BrickColor.Name] and supplyCounts[bcolorToSupply[box.BrickColor.Name]] < settings.refill_end then
+                            box.CFrame = CFrame.new(38 - 4.3 * math.floor(j / 2), 5, -7 - 5 * (j % 2))
+                            network:FireServer("UpdateProperty", box, "CFrame", box.CFrame)
+                            lastBox = box
+                            j = j + 1
+                            if j > 13 then break end
+                        end
+                    end
+                    if lastBox then
+                        waiting = true
+                        waitingTick = tick()
+                    end
+                end
+            end
+            --smoothTP(oldcf)
         end
     end
 end
-
--- Conectar botón de Delivery para activar/desactivar el teletransporte
-deliveryBtn.MouseButton1Click:Connect(function()
-    doDelivery = not doDelivery
-    deliveryBtn.Text = doDelivery and "Desactivar Teletransporte" or "Activar Teletransporte"
-    if doDelivery then
-        spawn(teletransportarCasas)
-    end
-end)
