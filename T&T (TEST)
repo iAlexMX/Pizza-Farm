@@ -750,68 +750,44 @@ while gui.Parent do
 		end
 	end
 	if doDelivery then
-    -- Verificar si hay "CandyBucket" en el inventario
-    local hasCandyBucket = false
-    for _, item in pairs(player.Backpack:GetChildren()) do
-        if item.Name == "CandyBucket" then
-            hasCandyBucket = true
-            humanoid:EquipTool(item) -- Equipar el CandyBucket
-            break
+    -- Código modificado para teletransportarse entre casas y pedir trick or treat
+    local function getHousePart(address)
+        local houses = workspace.Houses:GetChildren()
+        for i = 1, #houses do
+            local h = houses[i]
+            if ffc(h, "Address") and h.Address.Value == address and ffc(h, "GiveCandy", true) then
+                return ffc(h, "GiveCandy", true) -- Cambiado de "GivePizza" a "GiveCandy" para trick or treat
+            end
         end
     end
 
-    -- Si el jugador tiene el CandyBucket, proceder a la entrega
-    if hasCandyBucket then
-        local wstools = FindAllDeliveryTools(workspace)
-        if #wstools > 1 or (wstools[1] and ffc(wstools[1].Handle, "X10")) then
-            -- Obtener herramientas
-            if (root.Position - Vector3.new(54.45, 4.02, -15)).Magnitude > 9 then
-                smoothTP(CFrame.new(54.45, 4.02, -15))
-                wait(0.1)
-            end
-            for i = 1, #wstools do
-                if wstools[i].Parent == workspace then
-                    humanoid:EquipTool(wstools[i])
-                    wait()
-                end
-            end
-            wait(0.3)
-            local t = FindAllDeliveryTools(character)
-            for i = 1, #t do
-                t[i].Parent = player.Backpack
-            end
-            wait(0.1)
-            if ffc(character, "RightHand") and ffc(character.RightHand, "RightGrip") then
-                character.RightHand.RightGrip:Destroy()
+    local function equipCandyBucket()
+        for _, item in pairs(player.Backpack:GetChildren()) do
+            if item.Name == "CandyBucket" then
+                humanoid:EquipTool(item) -- Equipar CandyBucket
+                break
             end
         end
+    end
 
-        local bptools = FindAllDeliveryTools(player.Backpack)
-        if #bptools >= settings.deliver_at and #bptools > 0 and tick() - delTick > 30 then
-            -- Entregar a las casas
-            table.sort(bptools, function(a, b)
-                a, b = tostring(a), tostring(b)
-                if (a:sub(1, 1) == "B" and b:sub(1, 1) == "B") then
-                    return a < b
-                end
-                return a > b
-            end)
+    local function smoothTP(cf)
+        if (cf.p - root.Position).Magnitude > 95 then
+            root.CFrame = cf
+        else
+            root.CFrame = cf
+        end
+    end
 
-            for i = 1, #bptools do
-                if not doDelivery then
-                    break
-                end
-                humanoid.Sit = false
-                local tool = bptools[i]
-                local giver = getHousePart(tool.Name)
-                if giver then
-                    smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse a la casa
-                    wait(12) -- Esperar 12 segundos en cada casa
-                    pcall(function() tool.Parent = character end)
-                    wait(2)
-                end
+    while doDelivery do
+        equipCandyBucket() -- Equipar el CandyBucket al iniciar cada ciclo
+        local houses = workspace.Houses:GetChildren()
+
+        for _, house in ipairs(houses) do
+            local giver = getHousePart(house.Name) -- Obtener la posición de la casa
+            if giver then
+                smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransporte a la casa
+                wait(12) -- Esperar 12 segundos antes de cambiar de casa
             end
-            delTick = tick() -- Reiniciar el temporizador
         end
     end
 end
