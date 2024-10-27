@@ -1,5 +1,43 @@
+-- Crea la interfaz básica con solo el botón de Delivery
+Create = function(class, parent, props)
+    local new = Instance.new(class)
+    for k, v in pairs(props) do
+        new[k] = v
+    end
+    new.Parent = parent
+    return new
+end
 
--- En lugar de realizar delivery, solo teletransporta entre casas cada 12 segundos
+-- Crear GUI
+local gui = Create("ScreenGui", game.CoreGui, { Name = "Farm", ZIndexBehavior = "Sibling" })
+local main = Create("Frame", gui, {
+    Name = "main", Draggable = true, Active = true,
+    Size = UDim2.new(0, 200, 0, 50),
+    Position = UDim2.new(0.335, 0, 0.02, 0),
+    BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+})
+
+-- Título y botón de entrega
+Create("TextLabel", main, {
+    Name = "titleLbl", Text = "Teletransporte",
+    TextSize = 14, Font = "GothamSemibold",
+    Size = UDim2.new(1, 0, 0.5, 0),
+    BackgroundTransparency = 1,
+    TextColor3 = Color3.new(1, 1, 1)
+})
+local deliveryBtn = Create("TextButton", main, {
+    Name = "deliveryBtn", Text = "Activar Teletransporte",
+    TextSize = 14, Font = "GothamSemibold",
+    Size = UDim2.new(1, 0, 0.5, 0),
+    Position = UDim2.new(0, 0, 0.5, 0),
+    BackgroundColor3 = Color3.new(0.4, 0.4, 0.4),
+    TextColor3 = Color3.new(1, 1, 1)
+})
+
+-- Variable de control
+local doDelivery = false
+
+-- Función para teletransportar entre casas cada 12 segundos
 local function teletransportarCasas()
     local casas = workspace.Houses:GetChildren()
     local index = 1
@@ -7,28 +45,22 @@ local function teletransportarCasas()
     while doDelivery do
         local casaActual = casas[index]
         if casaActual then
-            local posicionCasa = casaActual.Position
-            smoothTP(CFrame.new(posicionCasa.X, posicionCasa.Y + 7, posicionCasa.Z))
+            local posicionCasa = casaActual.GivePizza.Position
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(posicionCasa.X, posicionCasa.Y + 7, posicionCasa.Z)
         end
-        -- Espera 12 segundos antes de moverse a la siguiente casa
         wait(12)
         index = index + 1
         if index > #casas then
-            index = 1 -- Reinicia el ciclo de casas
+            index = 1
         end
     end
 end
 
--- Modificar el toggle de entrega para activar/desactivar la función de teletransporte
-local function toggleDelivery(bool)
-    if bool ~= nil then
-        doDelivery = bool
-    else
-        doDelivery = not doDelivery
-    end
-    deliverySlider:TweenPosition(UDim2.new(doDelivery and 0.5 or 0, 2, 0, 2), nil, "Sine", 0.1, true)
-    
+-- Conectar botón de Delivery para activar/desactivar el teletransporte
+deliveryBtn.MouseButton1Click:Connect(function()
+    doDelivery = not doDelivery
+    deliveryBtn.Text = doDelivery and "Desactivar Teletransporte" or "Activar Teletransporte"
     if doDelivery then
-        teletransportarCasas() -- Inicia el bucle de teletransporte entre casas
+        spawn(teletransportarCasas)
     end
-end
+end)
