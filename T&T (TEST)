@@ -45,9 +45,14 @@ local function teletransportarCasas()
 
     while doDelivery do
         local casaActual = casas[index]
-        if casaActual and casaActual:FindFirstChild("PrimaryPart") then
-            local posicionCasa = casaActual.PrimaryPart.Position
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(posicionCasa.X, posicionCasa.Y + 7, posicionCasa.Z)
+        if casaActual then
+            -- Buscar la primera parte de la casa
+            local posicionCasa = casaActual:FindFirstChildOfClass("Part")
+            if posicionCasa then
+                player.Character.HumanoidRootPart.CFrame = CFrame.new(posicionCasa.Position.X, posicionCasa.Position.Y + 7, posicionCasa.Position.Z)
+            else
+                warn("Casa sin una parte válida encontrada, saltando a la siguiente.")
+            end
         else
             warn("Casa no válida encontrada, saltando a la siguiente.")
         end
