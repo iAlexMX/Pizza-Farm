@@ -36,6 +36,7 @@ local deliveryBtn = Create("TextButton", main, {
 
 -- Variable de control
 local doDelivery = false
+local player = game.Players.LocalPlayer
 
 -- Función para teletransportar entre casas cada 12 segundos
 local function teletransportarCasas()
@@ -44,9 +45,11 @@ local function teletransportarCasas()
 
     while doDelivery do
         local casaActual = casas[index]
-        if casaActual then
-            local posicionCasa = casaActual.GivePizza.Position
+        if casaActual and casaActual:FindFirstChild("PrimaryPart") then
+            local posicionCasa = casaActual.PrimaryPart.Position
             player.Character.HumanoidRootPart.CFrame = CFrame.new(posicionCasa.X, posicionCasa.Y + 7, posicionCasa.Z)
+        else
+            warn("Casa no válida encontrada, saltando a la siguiente.")
         end
         wait(12)
         index = index + 1
