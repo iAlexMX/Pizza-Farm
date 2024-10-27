@@ -1,1 +1,34 @@
 
+-- En lugar de realizar delivery, solo teletransporta entre casas cada 12 segundos
+local function teletransportarCasas()
+    local casas = workspace.Houses:GetChildren()
+    local index = 1
+
+    while doDelivery do
+        local casaActual = casas[index]
+        if casaActual then
+            local posicionCasa = casaActual.Position
+            smoothTP(CFrame.new(posicionCasa.X, posicionCasa.Y + 7, posicionCasa.Z))
+        end
+        -- Espera 12 segundos antes de moverse a la siguiente casa
+        wait(12)
+        index = index + 1
+        if index > #casas then
+            index = 1 -- Reinicia el ciclo de casas
+        end
+    end
+end
+
+-- Modificar el toggle de entrega para activar/desactivar la función de teletransporte
+local function toggleDelivery(bool)
+    if bool ~= nil then
+        doDelivery = bool
+    else
+        doDelivery = not doDelivery
+    end
+    deliverySlider:TweenPosition(UDim2.new(doDelivery and 0.5 or 0, 2, 0, 2), nil, "Sine", 0.1, true)
+    
+    if doDelivery then
+        teletransportarCasas() -- Inicia el bucle de teletransporte entre casas
+    end
+end
