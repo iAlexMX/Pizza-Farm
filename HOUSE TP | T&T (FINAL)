@@ -1,0 +1,104 @@
+-- Configuración inicial
+local player = game.Players.LocalPlayer
+_G.houseIndex = _G.houseIndex or 1 -- Comienza desde House1 o mantiene el último índice si el script ya estaba en ejecución
+local maxHouses = 12 -- Número máximo de casas
+local teleporting = false -- Para evitar doble click
+
+-- Crear la Interfaz de Usuario
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false -- Mantener la interfaz en pantalla si el jugador respawnea
+ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositivos
+
+local TeleportButton = Instance.new("TextButton")
+TeleportButton.Size = UDim2.new(0, 200, 0, 50)
+TeleportButton.Position = UDim2.new(0.5, -100, 0.9, -25)
+TeleportButton.Text = "Teletransportarse a la Casa " .. _G.houseIndex
+TeleportButton.Font = Enum.Font.SourceSansBold
+TeleportButton.TextSize = 20
+TeleportButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+TeleportButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportButton.Parent = ScreenGui
+
+-- Hacer que el botón sea arrastrable
+local dragging = false
+local dragStart
+local startPos
+
+TeleportButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = TeleportButton.Position
+    end
+end)
+
+TeleportButton.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local delta = input.Position - dragStart
+        TeleportButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+TeleportButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Función para teletransportarse
+local function teleportToHouse()
+    if teleporting then return end -- Evitar doble click
+    teleporting = true
+
+    -- Obtener la ruta a la casa actual
+    local houseName = "House" .. _G.houseIndex
+    local house = workspace.Houses:FindFirstChild(houseName)
+    if house then
+        -- Buscar el objeto FrontDoorMain dentro de la casa
+        local frontDoor = house:FindFirstChild("FrontDoorMain", true)
+        
+        if frontDoor then
+            -- Si FrontDoorMain es un Modelo, buscamos su PrimaryPart o un BasePart dentro
+            if frontDoor:IsA("Model") then
+                if frontDoor.PrimaryPart then
+                    -- Usar la PrimaryPart si está definida
+                    player.Character:SetPrimaryPartCFrame(frontDoor.PrimaryPart.CFrame)
+                else
+                    -- Si no tiene PrimaryPart, busca la primera BasePart dentro del modelo
+                    local part = frontDoor:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        player.Character:SetPrimaryPartCFrame(part.CFrame)
+                    else
+                        warn("No se encontró una BasePart en el modelo 'FrontDoorMain' de " .. houseName)
+                    end
+                end
+            elseif frontDoor:IsA("BasePart") then
+                -- Si FrontDoorMain es una BasePart directamente
+                player.Character:SetPrimaryPartCFrame(frontDoor.CFrame)
+            end
+            print("Teletransportado a " .. houseName)
+        else
+            warn("No se encontró 'FrontDoorMain' en " .. houseName)
+        end
+    else
+        warn("No se encontró la casa: " .. houseName)
+    end
+
+    -- Actualizar el índice para la siguiente casa
+    _G.houseIndex = _G.houseIndex + 1
+    if _G.houseIndex > maxHouses then
+        _G.houseIndex = 1 -- Reiniciar el ciclo cuando llega a House12
+    end
+
+    -- Actualizar el texto del botón
+    TeleportButton.Text = "Teletransportarse a la Casa " .. _G.houseIndex
+    teleporting = false
+end
+
+-- Conectar el botón a la función de teletransporte
+TeleportButton.MouseButton1Click:Connect(teleportToHouse)
