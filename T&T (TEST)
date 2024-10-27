@@ -762,12 +762,15 @@ while gui.Parent do
     end
 
     local function equipCandyBucket()
+        local bucketEquipped = false
         for _, item in pairs(player.Backpack:GetChildren()) do
             if item.Name == "CandyBucket" then
                 humanoid:EquipTool(item) -- Equipar CandyBucket
+                bucketEquipped = true
                 break
             end
         end
+        return bucketEquipped
     end
 
     local function smoothTP(cf)
@@ -778,17 +781,27 @@ while gui.Parent do
         end
     end
 
-    while doDelivery do
-        equipCandyBucket() -- Equipar el CandyBucket al iniciar cada ciclo
+    -- Ejecutar teletransporte entre casas solo si el CandyBucket está en el inventario
+    if equipCandyBucket() then
         local houses = workspace.Houses:GetChildren()
-
-        for _, house in ipairs(houses) do
-            local giver = getHousePart(house.Name) -- Obtener la posición de la casa
-            if giver then
-                smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransporte a la casa
-                wait(12) -- Esperar 12 segundos antes de cambiar de casa
+        
+        -- Asegurarse de que hay casas para visitar
+        if #houses > 0 then
+            while doDelivery do
+                for _, house in ipairs(houses) do
+                    local giver = getHousePart(house.Name) -- Obtener la posición de la casa
+                    if giver then
+                        smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransporte a la casa
+                        wait(12) -- Esperar 12 segundos antes de cambiar de casa
+                    end
+                end
+                wait(1) -- Pausa adicional para evitar carga continua en el bucle
             end
+        else
+            warn("No hay casas disponibles en workspace.Houses")
         end
+    else
+        warn("CandyBucket no encontrado en el inventario")
     end
 end
 	tryCook()
