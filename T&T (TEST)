@@ -769,23 +769,21 @@ while gui.Parent do
 
     -- Ejecutar teletransporte entre casas solo si el CandyBucket está en el inventario
     if equipCandyBucket() then
-        local houses = workspace.Houses:GetChildren()
-        
-        -- Asegurarse de que hay casas para visitar
-        if #houses > 0 then
-            while doDelivery do
-                for _, house in ipairs(houses) do
-                    -- Teletransportarse a la puerta de la casa
-                    local doorPosition = house:FindFirstChild("Door") or house:FindFirstChild("PrimaryPart")
-                    if doorPosition then
-                        smoothTP(doorPosition.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse justo frente a la puerta
-                        wait(12) -- Esperar 12 segundos antes de cambiar de casa
+        -- Recorrer cada subcarpeta en workspace.Houses
+        for _, houseFolder in pairs(workspace.Houses:GetChildren()) do
+            if houseFolder:IsA("Folder") or houseFolder:IsA("Model") then -- Verificar si es una carpeta o modelo de casas
+                while doDelivery do
+                    for _, house in pairs(houseFolder:GetChildren()) do
+                        -- Buscar la puerta principal "FrontDoorMain" en cada casa
+                        local frontDoor = house:FindFirstChild("FrontDoorMain")
+                        if frontDoor then
+                            smoothTP(frontDoor.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse justo frente a la puerta
+                            wait(12) -- Esperar 12 segundos antes de cambiar de casa
+                        end
                     end
+                    wait(1) -- Pausa adicional para evitar carga continua en el bucle
                 end
-                wait(1) -- Pausa adicional para evitar carga continua en el bucle
             end
-        else
-            warn("No hay casas disponibles en workspace.Houses")
         end
     else
         warn("CandyBucket no encontrado en el inventario")
