@@ -750,17 +750,7 @@ while gui.Parent do
 		end
 	end
 	if doDelivery then
-    -- Código modificado para teletransportarse entre casas y pedir trick or treat
-    local function getHousePart(address)
-        local houses = workspace.Houses:GetChildren()
-        for i = 1, #houses do
-            local h = houses[i]
-            if ffc(h, "Address") and h.Address.Value == address and ffc(h, "GiveCandy", true) then
-                return ffc(h, "GiveCandy", true) -- Cambiado de "GivePizza" a "GiveCandy" para trick or treat
-            end
-        end
-    end
-
+    -- Modificación para teletransportarse a cada casa y esperar 12 segundos
     local function equipCandyBucket()
         local bucketEquipped = false
         for _, item in pairs(player.Backpack:GetChildren()) do
@@ -774,11 +764,7 @@ while gui.Parent do
     end
 
     local function smoothTP(cf)
-        if (cf.p - root.Position).Magnitude > 95 then
-            root.CFrame = cf
-        else
-            root.CFrame = cf
-        end
+        root.CFrame = cf -- Teletransportar directamente al destino
     end
 
     -- Ejecutar teletransporte entre casas solo si el CandyBucket está en el inventario
@@ -789,9 +775,10 @@ while gui.Parent do
         if #houses > 0 then
             while doDelivery do
                 for _, house in ipairs(houses) do
-                    local giver = getHousePart(house.Name) -- Obtener la posición de la casa
-                    if giver then
-                        smoothTP(giver.CFrame + Vector3.new(0, 7, 0)) -- Teletransporte a la casa
+                    -- Teletransportarse a la puerta de la casa
+                    local doorPosition = house:FindFirstChild("Door") or house:FindFirstChild("PrimaryPart")
+                    if doorPosition then
+                        smoothTP(doorPosition.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse justo frente a la puerta
                         wait(12) -- Esperar 12 segundos antes de cambiar de casa
                     end
                 end
