@@ -765,25 +765,37 @@ while gui.Parent do
 
     local function smoothTP(cf)
         root.CFrame = cf -- Teletransportar directamente al destino
+        print("Teletransportado a:", cf.Position) -- Mensaje de depuración
     end
 
     -- Ejecutar teletransporte entre casas solo si el CandyBucket está en el inventario
     if equipCandyBucket() then
+        print("CandyBucket equipado. Iniciando teletransporte...") -- Mensaje de depuración
         -- Recorrer cada subcarpeta en workspace.Houses
-        for _, houseFolder in pairs(workspace.Houses:GetChildren()) do
-            if houseFolder:IsA("Folder") or houseFolder:IsA("Model") then -- Verificar si es una carpeta o modelo de casas
-                while doDelivery do
-                    for _, house in pairs(houseFolder:GetChildren()) do
-                        -- Buscar la puerta principal "FrontDoorMain" en cada casa
-                        local frontDoor = house:FindFirstChild("FrontDoorMain")
-                        if frontDoor then
-                            smoothTP(frontDoor.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse justo frente a la puerta
-                            wait(12) -- Esperar 12 segundos antes de cambiar de casa
+        local housesFolder = workspace:FindFirstChild("Houses")
+        
+        if housesFolder then
+            while doDelivery do
+                for _, houseFolder in pairs(housesFolder:GetChildren()) do
+                    if houseFolder:IsA("Folder") or houseFolder:IsA("Model") then
+                        -- Recorrer cada casa en la subcarpeta actual
+                        for _, house in pairs(houseFolder:GetChildren()) do
+                            -- Buscar la puerta principal "FrontDoorMain" en cada casa
+                            local frontDoor = house:FindFirstChild("FrontDoorMain")
+                            if frontDoor then
+                                print("Encontrada puerta en:", house.Name) -- Mensaje de depuración
+                                smoothTP(frontDoor.CFrame + Vector3.new(0, 7, 0)) -- Teletransportarse justo frente a la puerta
+                                wait(12) -- Esperar 12 segundos antes de cambiar de casa
+                            else
+                                print("No se encontró FrontDoorMain en:", house.Name) -- Mensaje de depuración si no encuentra la puerta
+                            end
                         end
                     end
-                    wait(1) -- Pausa adicional para evitar carga continua en el bucle
                 end
+                wait(1) -- Pausa adicional para evitar carga continua en el bucle
             end
+        else
+            warn("No se encontró workspace.Houses") -- Mensaje de advertencia si no encuentra el folder Houses
         end
     else
         warn("CandyBucket no encontrado en el inventario")
