@@ -1,0 +1,117 @@
+local player = game:GetService("Players").LocalPlayer
+local ffc = game.FindFirstChild
+local humanoid = player.Character and player.Character:WaitForChild("Humanoid")
+local pathfindingService = game:GetService("PathfindingService")
+local ui = Instance.new("ScreenGui", game.CoreGui)
+local deliveryButton = Instance.new("TextButton")
+local isDelivering = false
+local bikeEquipped = false
+
+-- Crear la interfaz de usuario
+ui.Name = "PizzaDeliveryUI"
+ui.Parent = game.CoreGui
+ui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+deliveryButton.Size = UDim2.new(0, 200, 0, 50)
+deliveryButton.Position = UDim2.new(0.5, -100, 0.9, -25)
+deliveryButton.Text = "Iniciar Entrega"
+deliveryButton.Parent = ui
+
+-- Función para equipar la moto (DeliveryBike)
+local function equipBike()
+    local backpack = player.Backpack
+    local bike = backpack:FindFirstChild("DeliveryBike")
+    if not bike then
+        local bikeClone = game:GetService("ReplicatedStorage"):WaitForChild("DeliveryBike"):Clone()
+        bikeClone.Parent = backpack
+    end
+end
+
+-- Función para caminar hasta una posición (sin teletransportarse)
+local function walkTo(position)
+    local humanoid = player.Character:WaitForChild("Humanoid")
+    humanoid:MoveTo(position)
+    -- Espera hasta que el personaje haya llegado al destino
+    repeat wait() until (player.Character.HumanoidRootPart.Position - position).Magnitude < 5
+end
+
+-- Función para obtener las pizzas disponibles en el juego
+local function getOrders()
+    local orders = {}
+    -- Asume que la lógica para obtener los pedidos está aquí, puedes ajustarlo según tu script original
+    local children = workspace.Orders:GetChildren()
+    for i = 1, #children do
+        local pizza = children[i]
+        -- Este ejemplo asume que la pizza es un pedido válido si tiene un nombre de imagen en la etiqueta de la imagen.
+        if pizza:FindFirstChild("SG") and pizza.SG:FindFirstChild("ImageLabel") then
+            table.insert(orders, pizza)
+        end
+    end
+    return orders
+end
+
+-- Función para entregar la pizza en la casa correspondiente
+local function deliverPizza()
+    local orders = getOrders()
+    for i, pizza in ipairs(orders) do
+        -- Encuentra la casa de entrega para la pizza
+        local housePart = getHousePart(pizza.Name)  -- Supón que tienes una función getHousePart que obtiene la casa correcta para la pizza
+        if housePart then
+            -- Equipar la moto antes de moverse
+            if not bikeEquipped then
+                equipBike()
+                bikeEquipped = true
+            end
+
+            -- Camina hacia la casa de entrega
+            walkTo(housePart.Position)
+
+            -- Desequipa la moto al llegar a la casa
+            local bike = player.Backpack:FindFirstChild("DeliveryBike")
+            if bike then
+                bike.Parent = player.Character  -- Desequipar la moto
+            end
+
+            -- Lógica de entrega (puedes agregar más detalles sobre cómo entregas las pizzas aquí)
+            print("Pizza entregada en la casa:", housePart)
+
+            -- Después de entregar la pizza, vuelve a equipar la moto para ir a la siguiente casa
+            if not player.Backpack:FindFirstChild("DeliveryBike") then
+                equipBike()  -- Si la moto no está en el inventario, la equipa nuevamente
+            end
+        end
+    end
+end
+
+-- Función para regresar a la pizzería
+local function returnToPizzaPlace()
+    local pizzaPlacePosition = Vector3.new(50, 3, 70)  -- Posición de la pizzería
+    walkTo(pizzaPlacePosition)
+end
+
+-- Función para iniciar el trabajo de entrega
+local function startDelivery()
+    if isDelivering then
+        print("Ya estás en el modo de entrega.")
+        return
+    end
+    isDelivering = true
+    deliveryButton.Text = "Entrega en curso..."
+    
+    -- Aquí empieza la lógica de entrega
+    deliverPizza()
+    
+    -- Regresar a la pizzería al finalizar todas las entregas
+    returnToPizzaPlace()
+
+    -- Resetea el botón y el estado
+    isDelivering = false
+    deliveryButton.Text = "Iniciar Entrega"
+end
+
+-- Conectar el botón para iniciar el modo de entrega
+deliveryButton.MouseButton1Click:Connect(function()
+    if not isDelivering then
+        startDelivery()
+    end
+end)
