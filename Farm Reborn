@@ -797,7 +797,7 @@ while gui.Parent do
 							smoothTP(giver.CFrame+Vector3.new(0,7,0))
 						end
 						pcall(function() tool.Parent = character end)
-						wait(1.2)
+						wait()
 						local t = FindAllDeliveryTools(character)
                 		for i=1,#t do
                 		    if t[i] ~= tool then
@@ -808,9 +808,9 @@ while gui.Parent do
 						fatass=false
 					else
 						if fatass then
-							wait(3)
+							wait()
 						else
-							wait(0)
+							wait()
 						end
 						pcall(function() tool.Parent = character end)
 						wait()
