@@ -804,13 +804,13 @@ while gui.Parent do
                 			    t[i].Parent = player.Backpack
                 			end
                 		end
-						wait(2)
+						wait(5)
 						fatass=false
 					else
 						if fatass then
-							wait(0.2)
+							wait(5)
 						else
-							wait(0.7)
+							wait(5)
 						end
 						pcall(function() tool.Parent = character end)
 						wait()
