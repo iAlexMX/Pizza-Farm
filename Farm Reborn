@@ -797,20 +797,20 @@ while gui.Parent do
 							smoothTP(giver.CFrame+Vector3.new(0,7,0))
 						end
 						pcall(function() tool.Parent = character end)
-						wait(5)
+						wait(1.2)
 						local t = FindAllDeliveryTools(character)
                 		for i=1,#t do
                 		    if t[i] ~= tool then
                 			    t[i].Parent = player.Backpack
                 			end
                 		end
-						wait(5)
+						wait(3)
 						fatass=false
 					else
 						if fatass then
-							wait(5)
+							wait(3)
 						else
-							wait(5)
+							wait(0)
 						end
 						pcall(function() tool.Parent = character end)
 						wait()
