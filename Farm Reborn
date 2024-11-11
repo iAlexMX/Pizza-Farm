@@ -807,7 +807,8 @@ while gui.Parent do
 						wait(8)
 						fatass=false
 					else
-							wait(0.2)
+						if fatass then
+							wait(1)
 						else
 							wait(0.7)
 						end
