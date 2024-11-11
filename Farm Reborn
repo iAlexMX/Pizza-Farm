@@ -804,7 +804,7 @@ while gui.Parent do
                 			    t[i].Parent = player.Backpack
                 			end
                 		end
-						wait(1.2)
+						wait(2)
 						fatass=false
 					else
 						if fatass then
