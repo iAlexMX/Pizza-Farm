@@ -1,0 +1,42 @@
+-- LocalScript que crea un ESP para el objeto "DeliveryBike" dentro de "Buy"
+
+local player = game.Players.LocalPlayer
+local workspace = game:GetService("Workspace")
+local deliveryBike = workspace.Buy:WaitForChild("DeliveryBike")  -- Objeto DeliveryBike en workspace.Buy
+local camera = workspace.CurrentCamera
+
+-- Crear un BillboardGui para mostrar sobre el objeto "DeliveryBike"
+local billboardGui = Instance.new("BillboardGui")
+billboardGui.Parent = game.CoreGui
+billboardGui.Adornee = deliveryBike
+billboardGui.Size = UDim2.new(0, 100, 0, 25)  -- Tamaño del BillboardGui (más pequeño)
+billboardGui.StudsOffset = Vector3.new(0, 3, 0)  -- Ajusta la distancia vertical del marcador
+billboardGui.AlwaysOnTop = true  -- Asegura que el marcador esté siempre visible, incluso a través de paredes
+
+-- Crear un marco dentro del BillboardGui para mostrar el texto
+local frame = Instance.new("Frame")
+frame.Parent = billboardGui
+frame.Size = UDim2.new(1, 0, 1, 0)
+frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Rojo para el marco
+frame.BorderSizePixel = 2
+
+-- Crear el texto dentro del marco
+local label = Instance.new("TextLabel")
+label.Parent = frame
+label.Size = UDim2.new(1, 0, 1, 0)
+label.BackgroundTransparency = 1
+label.Text = "Pizzeria"
+label.TextColor3 = Color3.fromRGB(255, 255, 255)
+label.TextSize = 14  -- Texto más pequeño
+label.TextStrokeTransparency = 0.8
+label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+-- Función que actualiza la posición del ESP dependiendo de la cámara
+game:GetService("RunService").RenderStepped:Connect(function()
+    if deliveryBike and deliveryBike.Parent then
+        -- Si el "DeliveryBike" está en el juego y su posición es válida
+        billboardGui.Adornee = deliveryBike
+        -- Asegúrate de que el ESP se actualiza correctamente si la cámara se mueve
+        billboardGui.StudsOffset = camera.CFrame:pointToObjectSpace(deliveryBike.Position).unit * 3
+    end
+end)
