@@ -697,7 +697,7 @@ while gui.Parent do
 		end
 		-- Aquí se eliminó el teletransporte
 		network:FireServer("OrderComplete", c, order, workspace["Register"..reg])
-		wait(6)
+		wait(4.4)
 	else
 		break
 	end
