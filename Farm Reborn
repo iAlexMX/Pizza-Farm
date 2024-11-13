@@ -695,11 +695,7 @@ while gui.Parent do
 			elseif c.Head.Position.X < 70 then
 			    reg = 1
 			end
-
-			wait(8)  
-
-                        end
-
+			if (root.Position-Vector3.new()).magnitude>9 then smoothTP(CFrame.new()) wait(8) end
 			network:FireServer("OrderComplete", c, order, workspace["Register"..reg])
 			wait(8)
 		else
