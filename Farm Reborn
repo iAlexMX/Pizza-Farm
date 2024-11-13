@@ -687,21 +687,21 @@ while gui.Parent do
         game:GetService("VirtualInputManager"):SendKeyEvent(false,"Z",false,game)
 	end
 	for zz=1,3 do
-		local c,order = FindFirstCustomer()
-		if doCashier and c and order then
-			local reg = 3
-			if c.Head.Position.X < 50 then
-			    reg = 2
-			elseif c.Head.Position.X < 70 then
-			    reg = 1
-			end
-			if (root.Position-Vector3.new()).magnitude>9 then smoothTP(CFrame.new()) wait(8) end
-			network:FireServer("OrderComplete", c, order, workspace["Register"..reg])
-			wait(8)
-		else
-			break
+	local c, order = FindFirstCustomer()
+	if doCashier and c and order then
+		local reg = 3
+		if c.Head.Position.X < 50 then
+		    reg = 2
+		elseif c.Head.Position.X < 70 then
+		    reg = 1
 		end
+		-- Aquí se eliminó el teletransporte
+		network:FireServer("OrderComplete", c, order, workspace["Register"..reg])
+		wait(8)
+	else
+		break
 	end
+end
 	tryCook()
 	for zz=1,7 do
 		if doBoxer then
