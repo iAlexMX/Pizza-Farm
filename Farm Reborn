@@ -705,17 +705,15 @@ end
 	tryCook()
 	for zz=1,7 do
 	if doBoxer then
-		local didsomething = false
-		local boxP, boxD = FindBoxingFoods()
-		local closedBox, openBox, fullBox = FindBoxes()
-		if boxD and tick()-boxDtick > 0.8 then
-			boxDtick = tick()
-			didsomething = true
-			-- Teletransporte eliminado aquí
-			network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63, 4.9, -1, -1, 0, 0, 0, 1, 0, 0, 0, -1))
-		end
-	end
-end
+			local didsomething = false
+			local boxP,boxD = FindBoxingFoods()
+			local closedBox,openBox,fullBox = FindBoxes()
+			if boxD and tick()-boxDtick>0.8 then
+				boxDtick=tick()
+				didsomething=true
+				if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
+				network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63,4.9,-1,-1,0,0,0,1,0,0,0,-1))
+			end
 			if fullBox then
 				if fullBox.Name=="BoxOpen" then
 					didsomething=true
