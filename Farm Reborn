@@ -581,7 +581,7 @@ local function tryCook()
 				if oven==nil or oven.IsOpen.Value then
 					cookPtick=tick()
 					didsomething=true
-					if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+					-- Teletransporte eliminado aquí
 					network:FireServer("UpdateProperty", cookP, "CFrame", CFrame.new(RNG:NextNumber(56,57),4.1,38))
 				end
 			end
@@ -590,12 +590,12 @@ local function tryCook()
 					--move dew if ordered
 					cookDtick=tick()
 					didsomething=true
-					if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+					-- Teletransporte eliminado aquí
 					network:FireServer("UpdateProperty", cookD, "CFrame", CFrame.new(53,4.68,36.5))
 				elseif order~="Dew" and raw and raw.Parent and supplyCounts[order]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0 then
 					--make pizza
 					if raw.Mesh.Scale.Y>1.5 then
-						if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+						-- Teletransporte eliminado aquí
 						didsomething=true
 						network:FireServer("UpdateProperty", raw, "CFrame", CFrame.new(RNG:NextNumber(29.6,44.6),3.7,RNG:NextNumber(42.5,48.5)))
 						wait()
@@ -610,7 +610,7 @@ local function tryCook()
 									if other then
 										--replace mistaken dough
 										didsomething=true
-										if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+										-- Teletransporte eliminado aquí
 										network:FireServer("UpdateProperty", other, "CFrame", CFrame.new(RNG:NextNumber(29.6,44.6),3.7,RNG:NextNumber(42.5,48.5)))
 										wait()
 									end
@@ -621,7 +621,7 @@ local function tryCook()
 						end
 						if oven and raw.Parent==workspace.AllDough then
 							--make
-							if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+							-- Teletransporte eliminado aquí
 							didsomething=true
 							network:FireServer("AddIngredientToPizza", raw,"TomatoSauce")
 							network:FireServer("AddIngredientToPizza", raw,"Cheese")
@@ -653,7 +653,7 @@ local function tryCook()
 				local bar = o.Door.Meter.SurfaceGui.ProgressBar.Bar
 				if o.IsOpen.Value==false and (o.IsCooking.Value==false or (Vector3.new(bar.ImageColor3.r,bar.ImageColor3.g,bar.ImageColor3.b)-Vector3.new(.871,.518,.224)).magnitude>.1) then
 					didsomething=true
-					if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+					-- Teletransporte eliminado aquí
 					o.Door.ClickDetector.Detector:FireServer()
 					break
 				end
@@ -661,7 +661,7 @@ local function tryCook()
 			--trash
 			if badD then
 				didsomething=true
-				if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
+				-- Teletransporte eliminado aquí
 				network:FireServer("UpdateProperty", badD, "CFrame", CFrame.new(RNG:NextNumber(28,30), 1.7, RNG:NextNumber(55,57)))
 			end
 			if trash and (trash.IsBurned.Value==false or getOvenNear(trash.Position)==nil or getOvenNear(trash.Position).IsOpen.Value) then
@@ -697,46 +697,48 @@ while gui.Parent do
 		end
 		-- Aquí se eliminó el teletransporte
 		network:FireServer("OrderComplete", c, order, workspace["Register"..reg])
-		wait(8)
+		wait(6)
 	else
 		break
 	end
 end
 	tryCook()
 	for zz=1,7 do
-		if doBoxer then
-			local didsomething = false
-			local boxP,boxD = FindBoxingFoods()
-			local closedBox,openBox,fullBox = FindBoxes()
-			if boxD and tick()-boxDtick>0.8 then
-				boxDtick=tick()
-				didsomething=true
-				if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
-				network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63,4.9,-1,-1,0,0,0,1,0,0,0,-1))
-			end
+	if doBoxer then
+		local didsomething = false
+		local boxP, boxD = FindBoxingFoods()
+		local closedBox, openBox, fullBox = FindBoxes()
+		if boxD and tick()-boxDtick > 0.8 then
+			boxDtick = tick()
+			didsomething = true
+			-- Teletransporte eliminado aquí
+			network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63, 4.9, -1, -1, 0, 0, 0, 1, 0, 0, 0, -1))
+		end
+	end
+end
 			if fullBox then
 				if fullBox.Name=="BoxOpen" then
 					didsomething=true
-					if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
+					-- Teletransporte eliminado aquí
 					network:FireServer("CloseBox", fullBox)
 					--will be moved next loop
 				elseif tick()-boxPtick>0.8 then
 					didsomething=true
-					if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
+					-- Teletransporte eliminado aquí
 					network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.2,4.4,RNG:NextNumber(-3,-2),-1,0,0,0,1,0,0,0,-1))
 					boxPtick=tick()
 				end
 			end
 			if closedBox and not openBox then
 				didsomething=true
-				if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
+				-- Teletransporte eliminado aquí
 				network:FireServer("UpdateProperty", closedBox, "CFrame", CFrame.new(RNG:NextNumber(62.5,70.5),3.5,RNG:NextNumber(11,25)))
 				wait()
 				network:FireServer("OpenBox", closedBox)
 			end
 			if openBox and boxP then
 				didsomething=true
-				if (root.Position-Vector3.new(58.74, 3.80, 12.400)).magnitude>9 then  smoothTP(CFrame.new(58.74, 3.80, 12.40))wait(.1) continue end
+				-- Teletransporte eliminado aquí
 				network:FireServer("UpdateProperty", boxP, "Anchored", true)
 				network:FireServer("UpdateProperty", openBox, "Anchored", true)
 				wait()
