@@ -696,7 +696,7 @@ while gui.Parent do
 			    reg = 1
 			end
 
-			wait(10)  
+			wait(8)  
 
                         end
 
