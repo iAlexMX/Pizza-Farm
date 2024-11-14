@@ -60,7 +60,8 @@ function CashierClass:GetClosestValidCustomer()
     return BestCustomer
 end
 
-CashierClass.OrderConnection = ReplicatedStorage.GameService.RecivedCustomerOrder.OnClientEvent
+-- Cambié la referencia de ReplicatedStorage.GameService a ReplicatedStorage.Communication.Events
+CashierClass.OrderConnection = ReplicatedStorage:WaitForChild("Communication"):WaitForChild("Events"):WaitForChild("RecivedCustomerOrder")
 
 function CashierClass:HandleCustomerDialog(Customer, Register)
     if FindChildByIndexSequence(Customer, {"Head", "DialogSimple", "Correct"}) and not CashierClass:IsInUse(Customer) then
