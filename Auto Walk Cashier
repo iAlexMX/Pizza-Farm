@@ -38,7 +38,10 @@ local function WalkToPoint(TargetPoint)
     end
 
     return function()
-        repeat wait() Humanoid:MoveTo(TargetPoint) until (LocalPlayer.Character.HumanoidRootPart.Position * Vector3.new(1,0,1) - TargetPoint * Vector3.new(1,0,1)).Magnitude < 2
+        WalkToPoint(TargetRegister.Border.Position + (-TargetRegister.Border.CFrame.LookVector).Unit * 5)()
+LocalPlayer.Character:PivotTo(CFrame.new(LocalPlayer.Character.HumanoidRootPart.Position, ClosestCustomer.HumanoidRootPart.Position))
+CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
+
     end
 end
 
