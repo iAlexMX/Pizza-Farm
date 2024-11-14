@@ -1,8 +1,49 @@
-local function StopScriptOnCharacterReset()
-    LocalPlayer.CharacterRemoving:Connect(function()
-        warn("Character reset detected, stopping script.")
-        script:Destroy()
-    end)
+local EventHandler
+
+for i, v in pairs(getgc()) do
+    if typeof(v) == "function" and islclosure(v) and not is_synapse_function(v) and debug.getinfo(v).name == "GetEventHandler" then
+        print('found')
+        EventHandler = v
+    end
+end
+
+local Table2 = getupvalue(EventHandler, 1)
+
+for i, v in pairs(Table2) do
+    if v.Remote then
+        v.Remote.Name = i
+    end
+end
+
+local LocalPlayer = game.Players.LocalPlayer
+local Events = game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("Events")
+
+local function FindChildByIndexSequence(Parent, IndexSequence)
+    local CurrentChild = Parent
+    for _, Index in ipairs(IndexSequence) do
+        CurrentChild = CurrentChild:FindFirstChild(tostring(Index))
+        if not CurrentChild then
+            return nil
+        end
+    end
+    return CurrentChild
+end
+
+local function TeleportToJob(Name)
+    local args = {
+        [1] = "TeleportToJob",
+        [2] = Name
+    }
+
+    game:GetService("ReplicatedStorage"):WaitForChild("PlayerChannel"):FireServer(unpack(args))
+end
+
+for i, v in pairs(getconnections(workspace.Main.GivePaycheck.OnClientEvent)) do
+    v:Disable()
+end
+
+local function ClaimPaycheck()
+    workspace:WaitForChild("Main"):WaitForChild("GivePaycheck"):FireServer("Paycheck", false)
 end
 
 local CashierClass = {}
@@ -40,12 +81,9 @@ function CashierClass:GetClosestValidCustomer()
 
     local BestCustomer, BestDistance = nil, math.huge
     for _, Customer in next, Customers do
-        if Customer:FindFirstChild("HumanoidRootPart") then
-            local Distance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
-            if Distance < BestDistance then
-                BestDistance = Distance
-                BestCustomer = Customer
-            end
+        if Customer:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position) < BestDistance then
+            BestDistance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
+            BestCustomer = Customer
         end
     end
 
@@ -77,7 +115,7 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
 
         Events.OrderComplete:FireServer(Customer, OrderString, Register)
         Customer:SetAttribute("AlreadyHandled", true)
-        
+
         print("Done handling dialog!")
     end
 end
@@ -85,7 +123,7 @@ end
 function CashierClass:CustomerHasVisibleBubble(Customer)
     local Head = Customer:FindFirstChild("Head")
     local IsVisible = false
-    for i,v in pairs(LocalPlayer.PlayerGui.CustomerBubbles:GetChildren()) do
+    for i, v in pairs(LocalPlayer.PlayerGui.CustomerBubbles:GetChildren()) do
         if v.Adornee == Head and v.Enabled == true then
             IsVisible = true
         end
@@ -100,26 +138,33 @@ function CashierClass:IsInUse(Customer)
     return FindChildByIndexSequence(Customer, {"Head", "InUse"}).Value and not CashierClass:CustomerHasVisibleBubble(Customer)
 end
 
+local ScriptActive = true
+
+local function StopScriptOnCharacterReset()
+    LocalPlayer.CharacterRemoving:Connect(function()
+        warn("Character reset detected, stopping script.")
+        ScriptActive = false
+    end)
+end
+
 local CashierCoroutine = coroutine.create(function()
     StopScriptOnCharacterReset()
-    while wait(1) do
-        print("Loop start")
+    while ScriptActive do
+        wait(1)
         if LocalPlayer.Team ~= game:GetService("Teams").Cashier then
             TeleportToJob("Cashier")
         end
 
-        print('Getting closest customer')
         local ClosestCustomer = CashierClass:GetClosestValidCustomer()
         if ClosestCustomer then
-            print('Handling closest customer')
             local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
             if TargetRegister then
                 CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
-                print("Done order! Waiting 5 seconds...")
-                task.wait(5) -- Espera de 5 segundos después de completar la orden
+                print("Done order!")
             end
         end
     end
+    print("Script stopped.")
 end)
 
 coroutine.resume(CashierCoroutine)
