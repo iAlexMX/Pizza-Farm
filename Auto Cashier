@@ -116,7 +116,9 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
         Events.OrderComplete:FireServer(Customer, OrderString, Register)
         Customer:SetAttribute("AlreadyHandled", true)
 
-        print("Done handling dialog!")
+         print("Done handling dialog!")
+        
+        wait(5)
     end
 end
 
