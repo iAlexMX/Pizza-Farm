@@ -9,7 +9,7 @@ local CashierClass = {}
 
 CashierClass.Timeout = 10
 CashierClass.Registers = {workspace.Register1, workspace.Register2, workspace.Register3}
-CashierClass.Radius = 23 -- Rango máximo en studs para atender a un cliente
+CashierClass.Radius = 10 -- Rango máximo en studs para atender a un cliente
 
 function CashierClass:GetCustomers()
     local ValidCustomers = {}
