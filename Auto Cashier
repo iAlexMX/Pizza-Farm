@@ -9,7 +9,6 @@ local CashierClass = {}
 
 CashierClass.Timeout = 10
 CashierClass.Registers = {workspace.Register1, workspace.Register2, workspace.Register3}
-CashierClass.Radius = 10 -- Rango máximo en studs para atender a un cliente
 
 function CashierClass:GetCustomers()
     local ValidCustomers = {}
@@ -43,7 +42,7 @@ function CashierClass:GetClosestValidCustomer()
     for _, Customer in next, Customers do
         if Customer:FindFirstChild("HumanoidRootPart") then
             local Distance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
-            if Distance < BestDistance and Distance <= CashierClass.Radius then
+            if Distance < BestDistance then
                 BestDistance = Distance
                 BestCustomer = Customer
             end
@@ -112,14 +111,13 @@ local CashierCoroutine = coroutine.create(function()
         print('Getting closest customer')
         local ClosestCustomer = CashierClass:GetClosestValidCustomer()
         if ClosestCustomer then
-            print('Handling closest customer within range')
+            print('Handling closest customer')
             local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
             if TargetRegister then
                 CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
-                print("Done order!")
+                print("Done order! Waiting 5 seconds...")
+                task.wait(5) -- Espera de 5 segundos después de completar la orden
             end
-        else
-            print("No customers in range.")
         end
     end
 end)
