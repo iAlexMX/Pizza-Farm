@@ -1,62 +1,20 @@
--- local EventHandler = filtergc("function", {Name = "GetEventHandler"}, true)
--- no filtergc LOL!
-local EventHandler
-
-for i,v in pairs(getgc()) do
-    if typeof(v) == "function" and islclosure(v) and not is_synapse_function(v) and debug.getinfo(v).name == "GetEventHandler" then
-        print('found')
-        EventHandler = v
-    end
-end
-
-local Table2 = getupvalue(EventHandler, 1)
-
-for i,v in pairs(Table2) do
-    if v.Remote then
-        v.Remote.Name = i
-    end
-end
-
-local LocalPlayer = game.Players.LocalPlayer
-local Events = game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("Events")
-
-local function FindChildByIndexSequence(Parent, IndexSequence)
-    local CurrentChild = Parent
-    for _, Index in ipairs(IndexSequence) do
-        CurrentChild = CurrentChild:FindFirstChild(tostring(Index))
-        if not CurrentChild then
-            return nil
-        end
-    end
-    return CurrentChild
-end
-
-local function TeleportToJob(Name)
-    local args = {
-        [1] = "TeleportToJob",
-        [2] = Name
-    }
-    
-    game:GetService("ReplicatedStorage"):WaitForChild("PlayerChannel"):FireServer(unpack(args))    
-end
-
-for i,v in pairs(getconnections(workspace.Main.GivePaycheck.OnClientEvent)) do
-    v:Disable()
-end
-
-local function ClaimPaycheck()
-    workspace:WaitForChild("Main"):WaitForChild("GivePaycheck"):FireServer("Paycheck", false)
+local function StopScriptOnCharacterReset()
+    LocalPlayer.CharacterRemoving:Connect(function()
+        warn("Character reset detected, stopping script.")
+        script:Destroy()
+    end)
 end
 
 local CashierClass = {}
 
 CashierClass.Timeout = 10
 CashierClass.Registers = {workspace.Register1, workspace.Register2, workspace.Register3}
+CashierClass.Radius = 23 -- Rango máximo en studs para atender a un cliente
 
 function CashierClass:GetCustomers()
     local ValidCustomers = {}
 
-    for _,Customer in next, workspace.Customers:GetChildren() do
+    for _, Customer in next, workspace.Customers:GetChildren() do
         local InUse = FindChildByIndexSequence(Customer, {"Head", "InUse"})
         if InUse and InUse.Value == false and Customer:FindFirstChild("Torso") and (Customer.Torso.Velocity.Magnitude < 1 or math.round(Customer.Torso.Velocity.Z) == -15) and (Customer.HumanoidRootPart.Position - self:GetRegisterFromCustomer(Customer).Screen.Position).Magnitude < 22 and not Customer:GetAttribute("AlreadyHandled") then
             table.insert(ValidCustomers, Customer)
@@ -83,9 +41,12 @@ function CashierClass:GetClosestValidCustomer()
 
     local BestCustomer, BestDistance = nil, math.huge
     for _, Customer in next, Customers do
-        if Customer:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position) < BestDistance then
-            BestDistance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
-            BestCustomer = Customer
+        if Customer:FindFirstChild("HumanoidRootPart") then
+            local Distance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
+            if Distance < BestDistance and Distance <= CashierClass.Radius then
+                BestDistance = Distance
+                BestCustomer = Customer
+            end
         end
     end
 
@@ -140,13 +101,6 @@ function CashierClass:IsInUse(Customer)
     return FindChildByIndexSequence(Customer, {"Head", "InUse"}).Value and not CashierClass:CustomerHasVisibleBubble(Customer)
 end
 
-local function StopScriptOnCharacterReset()
-    LocalPlayer.CharacterRemoving:Connect(function()
-        warn("Character reset detected, stopping script.")
-        script:Destroy()
-    end)
-end
-
 local CashierCoroutine = coroutine.create(function()
     StopScriptOnCharacterReset()
     while wait(1) do
@@ -158,12 +112,14 @@ local CashierCoroutine = coroutine.create(function()
         print('Getting closest customer')
         local ClosestCustomer = CashierClass:GetClosestValidCustomer()
         if ClosestCustomer then
-            print('Handling closest customer dialog manually')
+            print('Handling closest customer within range')
             local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
             if TargetRegister then
                 CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
                 print("Done order!")
             end
+        else
+            print("No customers in range.")
         end
     end
 end)
