@@ -1,9 +1,25 @@
--- Local player and other required services
-local LocalPlayer = game.Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Events = ReplicatedStorage:WaitForChild("Communication"):WaitForChild("Events")
+-- local EventHandler = filtergc("function", {Name = "GetEventHandler"}, true)
+-- no filtergc LOL!
+local EventHandler
 
--- Function to find child by index sequence
+for i,v in pairs(getgc()) do
+    if typeof(v) == "function" and islclosure(v) and not is_synapse_function(v) and debug.getinfo(v).name == "GetEventHandler" then
+        print('found')
+        EventHandler = v
+    end
+end
+
+local Table2 = getupvalue(EventHandler, 1)
+
+for i,v in pairs(Table2) do
+    if v.Remote then
+        v.Remote.Name = i
+    end
+end
+
+local LocalPlayer = game.Players.LocalPlayer
+local Events = game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("Events")
+
 local function FindChildByIndexSequence(Parent, IndexSequence)
     local CurrentChild = Parent
     for _, Index in ipairs(IndexSequence) do
@@ -15,7 +31,23 @@ local function FindChildByIndexSequence(Parent, IndexSequence)
     return CurrentChild
 end
 
--- Cashier Class
+local function TeleportToJob(Name)
+    local args = {
+        [1] = "TeleportToJob",
+        [2] = Name
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("PlayerChannel"):FireServer(unpack(args))    
+end
+
+for i,v in pairs(getconnections(workspace.Main.GivePaycheck.OnClientEvent)) do
+    v:Disable()
+end
+
+local function ClaimPaycheck()
+    workspace:WaitForChild("Main"):WaitForChild("GivePaycheck"):FireServer("Paycheck", false)
+end
+
 local CashierClass = {}
 
 CashierClass.Timeout = 10
@@ -24,7 +56,7 @@ CashierClass.Registers = {workspace.Register1, workspace.Register2, workspace.Re
 function CashierClass:GetCustomers()
     local ValidCustomers = {}
 
-    for _, Customer in next, workspace.Customers:GetChildren() do
+    for _,Customer in next, workspace.Customers:GetChildren() do
         local InUse = FindChildByIndexSequence(Customer, {"Head", "InUse"})
         if InUse and InUse.Value == false and Customer:FindFirstChild("Torso") and (Customer.Torso.Velocity.Magnitude < 1 or math.round(Customer.Torso.Velocity.Z) == -15) and (Customer.HumanoidRootPart.Position - self:GetRegisterFromCustomer(Customer).Screen.Position).Magnitude < 22 and not Customer:GetAttribute("AlreadyHandled") then
             table.insert(ValidCustomers, Customer)
@@ -51,8 +83,8 @@ function CashierClass:GetClosestValidCustomer()
 
     local BestCustomer, BestDistance = nil, math.huge
     for _, Customer in next, Customers do
-        if Customer:FindFirstChild("HumanoidRootPart") and (LocalPlayer.Character.HumanoidRootPart.Position - Customer.HumanoidRootPart.Position).Magnitude < BestDistance then
-            BestDistance = (LocalPlayer.Character.HumanoidRootPart.Position - Customer.HumanoidRootPart.Position).Magnitude
+        if Customer:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position) < BestDistance then
+            BestDistance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
             BestCustomer = Customer
         end
     end
@@ -60,19 +92,16 @@ function CashierClass:GetClosestValidCustomer()
     return BestCustomer
 end
 
--- Cambié la referencia de ReplicatedStorage.GameService a ReplicatedStorage.Communication.Events
-CashierClass.OrderConnection = ReplicatedStorage:WaitForChild("Communication"):WaitForChild("Events"):WaitForChild("RecivedCustomerOrder")
+CashierClass.OrderConnection = workspace.GameService.RecivedCustomerOrder.OnClientEvent
 
 function CashierClass:HandleCustomerDialog(Customer, Register)
     if FindChildByIndexSequence(Customer, {"Head", "DialogSimple", "Correct"}) and not CashierClass:IsInUse(Customer) then
-        -- Click the bubble and select the response button for the correct dialog option
         workspace:WaitForChild("Dialog"):FireServer("ClickedBubble", Customer.Head)
         workspace:WaitForChild("Dialog"):FireServer("ResponseSelected", Customer.Head.DialogSimple.Correct, Customer.Head)
 
         local OrderString
         local ClientOrderConnection
 
-        -- Listen for the customer's order
         ClientOrderConnection = self.OrderConnection:Connect(function(Order, ...)
             OrderString = Order
             ClientOrderConnection:Disconnect()
@@ -80,30 +109,23 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
 
         local TimeTaken = 0
 
-        -- Wait for the order or timeout after 10 seconds
         repeat task.wait(0.1) TimeTaken += 0.1 until OrderString or TimeTaken >= self.Timeout
 
         if TimeTaken >= self.Timeout then
             return
         end
 
-        -- Ensure that the event "OrderComplete" exists and fire it correctly
-        if Events:FindFirstChild("OrderComplete") then
-            Events.OrderComplete:FireServer(Customer, OrderString, Register)
-        else
-            print("Error: 'OrderComplete' event not found.")
-        end
-
+        Events.OrderComplete:FireServer(Customer, OrderString, Register)
         Customer:SetAttribute("AlreadyHandled", true)
-
-        print("Order handled successfully!")
+        
+        print("Done handling dialog!")
     end
 end
 
 function CashierClass:CustomerHasVisibleBubble(Customer)
     local Head = Customer:FindFirstChild("Head")
     local IsVisible = false
-    for i, v in pairs(LocalPlayer.PlayerGui.CustomerBubbles:GetChildren()) do
+    for i,v in pairs(LocalPlayer.PlayerGui.CustomerBubbles:GetChildren()) do
         if v.Adornee == Head and v.Enabled == true then
             IsVisible = true
         end
@@ -118,15 +140,15 @@ function CashierClass:IsInUse(Customer)
     return FindChildByIndexSequence(Customer, {"Head", "InUse"}).Value and not CashierClass:CustomerHasVisibleBubble(Customer)
 end
 
--- Handle reset event and deactivate script
-game.Players.LocalPlayer.CharacterAdded:Connect(function()
-    -- Disable or reset the script here as needed (for now it just terminates)
-    print("Player reset, script deactivated.")
-    -- Optionally: You can disconnect any active connections here if necessary
-end)
+local function StopScriptOnCharacterReset()
+    LocalPlayer.CharacterRemoving:Connect(function()
+        warn("Character reset detected, stopping script.")
+        script:Destroy()
+    end)
+end
 
--- Main Coroutine to handle Cashier tasks
 local CashierCoroutine = coroutine.create(function()
+    StopScriptOnCharacterReset()
     while wait(1) do
         print("Loop start")
         if LocalPlayer.Team ~= game:GetService("Teams").Cashier then
@@ -136,19 +158,11 @@ local CashierCoroutine = coroutine.create(function()
         print('Getting closest customer')
         local ClosestCustomer = CashierClass:GetClosestValidCustomer()
         if ClosestCustomer then
-            print('Getting register')
-            local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
-            if TargetRegister then
-                -- Only handle customer if close to them
-                if (LocalPlayer.Character.HumanoidRootPart.Position - ClosestCustomer.HumanoidRootPart.Position).Magnitude < 20 then
-                    print('Handling customer dialog')
-                    CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
-                    print("Done order!")
-                end
-            end
+            print('Handling customer dialog manually')
+            CashierClass:HandleCustomerDialog(ClosestCustomer, CashierClass:GetRegisterFromCustomer(ClosestCustomer))
+            print("Done order!")
         end
     end
 end)
 
--- Start the coroutine
 coroutine.resume(CashierCoroutine)
