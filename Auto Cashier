@@ -50,8 +50,8 @@ function CashierClass:GetClosestValidCustomer()
 
     local BestCustomer, BestDistance = nil, math.huge
     for _, Customer in next, Customers do
-        if Customer:FindFirstChild("HumanoidRootPart") and LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position) < BestDistance then
-            BestDistance = LocalPlayer:DistanceFromCharacter(Customer.HumanoidRootPart.Position)
+        if Customer:FindFirstChild("HumanoidRootPart") and (LocalPlayer.Character.HumanoidRootPart.Position - Customer.HumanoidRootPart.Position).Magnitude < BestDistance then
+            BestDistance = (LocalPlayer.Character.HumanoidRootPart.Position - Customer.HumanoidRootPart.Position).Magnitude
             BestCustomer = Customer
         end
     end
@@ -82,10 +82,11 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
             return
         end
 
+        -- Fire the order complete event
         Events.OrderComplete:FireServer(Customer, OrderString, Register)
         Customer:SetAttribute("AlreadyHandled", true)
 
-        print("Done handling dialog!")
+        print("Order handled successfully!")
     end
 end
 
@@ -129,7 +130,7 @@ local CashierCoroutine = coroutine.create(function()
             local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
             if TargetRegister then
                 -- Only handle customer if close to them
-                if (LocalPlayer.Character.HumanoidRootPart.Position - ClosestCustomer.HumanoidRootPart.Position).Magnitude < 10 then
+                if (LocalPlayer.Character.HumanoidRootPart.Position - ClosestCustomer.HumanoidRootPart.Position).Magnitude < 15 then
                     print('Handling customer dialog')
                     CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
                     print("Done order!")
