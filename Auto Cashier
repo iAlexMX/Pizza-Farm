@@ -1,6 +1,7 @@
 -- Local player and other required services
 local LocalPlayer = game.Players.LocalPlayer
-local Events = game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("Events")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Events = ReplicatedStorage:WaitForChild("Communication"):WaitForChild("Events")
 
 -- Function to find child by index sequence
 local function FindChildByIndexSequence(Parent, IndexSequence)
@@ -59,7 +60,7 @@ function CashierClass:GetClosestValidCustomer()
     return BestCustomer
 end
 
-CashierClass.OrderConnection = workspace.GameService.RecivedCustomerOrder.OnClientEvent
+CashierClass.OrderConnection = ReplicatedStorage.GameService.RecivedCustomerOrder.OnClientEvent
 
 function CashierClass:HandleCustomerDialog(Customer, Register)
     if FindChildByIndexSequence(Customer, {"Head", "DialogSimple", "Correct"}) and not CashierClass:IsInUse(Customer) then
@@ -85,8 +86,13 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
             return
         end
 
-        -- Fire the order complete event to complete the order handling
-        Events.OrderComplete:FireServer(Customer, OrderString, Register)
+        -- Ensure that the event "OrderComplete" exists and fire it correctly
+        if Events:FindFirstChild("OrderComplete") then
+            Events.OrderComplete:FireServer(Customer, OrderString, Register)
+        else
+            print("Error: 'OrderComplete' event not found.")
+        end
+
         Customer:SetAttribute("AlreadyHandled", true)
 
         print("Order handled successfully!")
