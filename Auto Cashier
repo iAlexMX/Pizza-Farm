@@ -158,9 +158,12 @@ local CashierCoroutine = coroutine.create(function()
         print('Getting closest customer')
         local ClosestCustomer = CashierClass:GetClosestValidCustomer()
         if ClosestCustomer then
-            print('Handling customer dialog manually')
-            CashierClass:HandleCustomerDialog(ClosestCustomer, CashierClass:GetRegisterFromCustomer(ClosestCustomer))
-            print("Done order!")
+            print('Handling closest customer dialog manually')
+            local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
+            if TargetRegister then
+                CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
+                print("Done order!")
+            end
         end
     end
 end)
