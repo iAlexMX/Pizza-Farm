@@ -63,12 +63,14 @@ CashierClass.OrderConnection = workspace.GameService.RecivedCustomerOrder.OnClie
 
 function CashierClass:HandleCustomerDialog(Customer, Register)
     if FindChildByIndexSequence(Customer, {"Head", "DialogSimple", "Correct"}) and not CashierClass:IsInUse(Customer) then
+        -- Click the bubble and select the response button for the correct dialog option
         workspace:WaitForChild("Dialog"):FireServer("ClickedBubble", Customer.Head)
         workspace:WaitForChild("Dialog"):FireServer("ResponseSelected", Customer.Head.DialogSimple.Correct, Customer.Head)
 
         local OrderString
         local ClientOrderConnection
 
+        -- Listen for the customer's order
         ClientOrderConnection = self.OrderConnection:Connect(function(Order, ...)
             OrderString = Order
             ClientOrderConnection:Disconnect()
@@ -76,13 +78,14 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
 
         local TimeTaken = 0
 
+        -- Wait for the order or timeout after 10 seconds
         repeat task.wait(0.1) TimeTaken += 0.1 until OrderString or TimeTaken >= self.Timeout
 
         if TimeTaken >= self.Timeout then
             return
         end
 
-        -- Fire the order complete event
+        -- Fire the order complete event to complete the order handling
         Events.OrderComplete:FireServer(Customer, OrderString, Register)
         Customer:SetAttribute("AlreadyHandled", true)
 
@@ -130,7 +133,7 @@ local CashierCoroutine = coroutine.create(function()
             local TargetRegister = CashierClass:GetRegisterFromCustomer(ClosestCustomer)
             if TargetRegister then
                 -- Only handle customer if close to them
-                if (LocalPlayer.Character.HumanoidRootPart.Position - ClosestCustomer.HumanoidRootPart.Position).Magnitude < 15 then
+                if (LocalPlayer.Character.HumanoidRootPart.Position - ClosestCustomer.HumanoidRootPart.Position).Magnitude < 20 then
                     print('Handling customer dialog')
                     CashierClass:HandleCustomerDialog(ClosestCustomer, TargetRegister)
                     print("Done order!")
