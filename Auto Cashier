@@ -118,7 +118,7 @@ function CashierClass:HandleCustomerDialog(Customer, Register)
 
          print("Done handling dialog!")
         
-        wait(5)
+        wait(2)
     end
 end
 
