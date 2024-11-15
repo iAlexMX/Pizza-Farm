@@ -1,0 +1,29 @@
+-- Lista de modelos a eliminar
+local modelsToRemove = {
+    workspace:FindFirstChild("Computer"),
+    workspace:FindFirstChild("PresentTable"),
+    workspace:FindFirstChild("Locker1"),
+    workspace:FindFirstChild("NeonTimeSign"),
+    workspace:FindFirstChild("DogDisplay"),
+    workspace:FindFirstChild("Locker2"),
+    workspace:FindFirstChild("Rat"),
+    workspace:FindFirstChild("Buy") and workspace.Buy:FindFirstChild("Head"),
+    workspace:FindFirstChild("Buy") and workspace.Buy:FindFirstChild("Ring"),
+    workspace:FindFirstChild("Extinguisher") and workspace.Extinguisher:FindFirstChild("Door"),
+    workspace:FindFirstChild("SodaMachine")
+}
+
+-- Eliminar modelos
+for _, model in ipairs(modelsToRemove) do
+    if model then
+        model:Destroy()
+    end
+end
+
+-- Eliminar el prompt específico
+local player = game:GetService("Players").LocalPlayer
+local foodMenuPrompt = player:FindFirstChild("PlayerGui") and player.PlayerGui:FindFirstChild("MainGui") and player.PlayerGui.MainGui:FindFirstChild("Prompts") and player.PlayerGui.MainGui.Prompts:FindFirstChild("FoodMenu")
+
+if foodMenuPrompt then
+    foodMenuPrompt:Destroy()
+end
