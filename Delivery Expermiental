@@ -1,49 +1,39 @@
 local TweenService = game:GetService("TweenService")
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local workspace = game.Workspace
 
-player.Character.ChildAdded:Connect(function(item)
+game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
     if item:FindFirstChild("House") then
         local house = item.House.Value
-        local door
-        local car = workspace.Cars:GetChildren()[2]:GetChildren()[28] -- Carro especificado
+        local door = house:GetDescendants()
 
-        -- Buscar la puerta correcta
-        for _, descendant in ipairs(house:GetDescendants()) do
-            if descendant.Name == "GivePizza" then
-                door = descendant
-                break
+        for i = 1, #door do
+            if door[i].Name == "GivePizza" then
+                local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+                local rootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                
+                if humanoid and rootPart then
+                    -- Ajustar WalkSpeed a 20
+                    humanoid.WalkSpeed = 20
+
+                    -- Crear un tween para mover suavemente al jugador hacia la puerta
+                    local targetPosition = door[i].CFrame.Position
+                    local tweenInfo = TweenInfo.new(
+                        50, -- Duración del movimiento (en segundos)
+                        Enum.EasingStyle.Linear, -- Estilo de movimiento (lineal para suavidad)
+                        Enum.EasingDirection.InOut -- Dirección del tween
+                    )
+
+                    local goal = {CFrame = CFrame.new(targetPosition)}
+
+                    local tween = TweenService:Create(rootPart, tweenInfo, goal)
+                    tween:Play()
+
+                    -- Esperar a que el tween termine antes de continuar
+                    tween.Completed:Wait()
+
+                    -- Opcional: Restaurar la velocidad del jugador después del movimiento
+                    humanoid.WalkSpeed = 16 -- Valor predeterminado de WalkSpeed
+                end
             end
-        end
-
-        if door and car then
-            -- Subirse al carro
-            local carSeat = car:FindFirstChild("Seat")
-            if carSeat then
-                character.HumanoidRootPart.CFrame = carSeat.CFrame
-                wait(1) -- Dar tiempo para que el personaje se "suba"
-            end
-
-            -- Tween para mover el carro a la puerta
-            local carTweenInfo = TweenInfo.new(
-                3, -- Tiempo
-                Enum.EasingStyle.Smooth, -- Estilo
-                Enum.EasingDirection.Out -- Dirección
-            )
-            local tweenGoal = {CFrame = door.CFrame - Vector3.new(0, 0, 5)} -- Detenerse un poco antes de la puerta
-            local carTween = TweenService:Create(car.PrimaryPart, carTweenInfo, tweenGoal)
-            carTween:Play()
-            carTween.Completed:Wait()
-
-            -- Bajarse del carro
-            if carSeat then
-                character.HumanoidRootPart.CFrame = carSeat.CFrame + Vector3.new(0, 5, 0) -- Salir del carro
-                wait(1)
-            end
-
-            -- Entregar la pizza/soda
-            character.HumanoidRootPart.CFrame = door.CFrame
         end
     end
 end)
