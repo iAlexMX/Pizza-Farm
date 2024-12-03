@@ -24,16 +24,18 @@ game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
                         AgentMaxSlope = 45 -- Inclinación máxima
                     })
 
+                    -- Calcular la ruta
                     path:ComputeAsync(rootPart.Position, door[i].Position)
 
+                    -- Revisar si se generó una ruta válida
                     if path.Status == Enum.PathStatus.Complete then
                         local waypoints = path:GetWaypoints()
 
+                        -- Seguir cada waypoint
                         for _, waypoint in ipairs(waypoints) do
-                            -- Mover al personaje hacia cada waypoint
                             humanoid:MoveTo(waypoint.Position)
 
-                            -- Saltar si el waypoint requiere un salto
+                            -- Verificar si el waypoint requiere salto
                             if waypoint.Action == Enum.PathWaypointAction.Jump then
                                 humanoid.Jump = true
                             end
@@ -42,8 +44,8 @@ game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
                             humanoid.MoveToFinished:Wait()
                         end
 
-                        -- Opcional: Restaurar la velocidad después de llegar a la puerta
-                        humanoid.WalkSpeed = 16 -- Valor predeterminado
+                        -- Restaurar la velocidad una vez que llegue
+                        humanoid.WalkSpeed = 16
                     else
                         warn("No se pudo encontrar una ruta hacia la puerta.")
                     end
