@@ -13,7 +13,7 @@ player.Character.ChildAdded:Connect(function(item)
                     -- Crear una plataforma invisible en -55
                     local platform = Instance.new("Part")
                     platform.Size = Vector3.new(10, 1, 10) -- Tamaño de la plataforma
-                    platform.Position = door[i].Position - Vector3.new(0, 55, 0) -- 60 unidades abajo de la puerta
+                    platform.Position = door[i].Position - Vector3.new(0, 55, 0) -- 55 unidades abajo de la puerta
                     platform.Anchored = true -- Fijar la plataforma para que no se mueva
                     platform.Transparency = 1 -- Hacerla invisible
                     platform.CanCollide = true -- Permitir que el jugador la pise
@@ -21,7 +21,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- Posición por debajo inicial
                     local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 50 unidades abajo desde la puerta
+                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
                     local doorPosition = door[i].CFrame -- Posición exacta de la puerta
                     local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
 
@@ -75,6 +75,12 @@ player.Character.ChildAdded:Connect(function(item)
                             end)
                         end)
                     end)
+
+                    -- Asegurar que la plataforma siempre esté en la posición correcta
+                    while platform and platform.Parent do
+                        platform.Position = Vector3.new(door[i].Position.X, door[i].Position.Y - 55, door[i].Position.Z)
+                        wait(1) -- Espera 1 segundo entre actualizaciones
+                    end
 
                     -- Limpiar la plataforma cuando se detecte un nuevo objeto
                     item.AncestryChanged:Connect(function()
