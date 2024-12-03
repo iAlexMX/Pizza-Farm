@@ -1,56 +1,49 @@
-local PathfindingService = game:GetService("PathfindingService")
+local TweenService = game:GetService("TweenService")
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local workspace = game.Workspace
 
-game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
+player.Character.ChildAdded:Connect(function(item)
     if item:FindFirstChild("House") then
         local house = item.House.Value
-        local door = house:GetDescendants()
+        local door
+        local car = workspace.Cars:GetChildren()[2]:GetChildren()[28] -- Carro especificado
 
-        for i = 1, #door do
-            if door[i].Name == "GivePizza" then
-                local character = game.Players.LocalPlayer.Character
-                local humanoid = character:FindFirstChild("Humanoid")
-                local rootPart = character:FindFirstChild("HumanoidRootPart")
-
-                if humanoid and rootPart then
-                    -- Ajustar la velocidad de caminar a 20
-                    humanoid.WalkSpeed = 20
-
-                    -- Crear una ruta segura hacia la puerta
-                    local path = PathfindingService:CreatePath({
-                        AgentRadius = 2, -- Radio del personaje
-                        AgentHeight = 5, -- Altura del personaje
-                        AgentCanJump = true, -- Permitir saltar
-                        AgentJumpHeight = 5, -- Altura máxima de salto
-                        AgentMaxSlope = 45 -- Inclinación máxima
-                    })
-
-                    -- Calcular la ruta
-                    path:ComputeAsync(rootPart.Position, door[i].Position)
-
-                    -- Revisar si se generó una ruta válida
-                    if path.Status == Enum.PathStatus.Complete then
-                        local waypoints = path:GetWaypoints()
-
-                        -- Seguir cada waypoint
-                        for _, waypoint in ipairs(waypoints) do
-                            humanoid:MoveTo(waypoint.Position)
-
-                            -- Verificar si el waypoint requiere salto
-                            if waypoint.Action == Enum.PathWaypointAction.Jump then
-                                humanoid.Jump = true
-                            end
-
-                            -- Esperar a que el personaje alcance el waypoint
-                            humanoid.MoveToFinished:Wait()
-                        end
-
-                        -- Restaurar la velocidad una vez que llegue
-                        humanoid.WalkSpeed = 16
-                    else
-                        warn("No se pudo encontrar una ruta hacia la puerta.")
-                    end
-                end
+        -- Buscar la puerta correcta
+        for _, descendant in ipairs(house:GetDescendants()) do
+            if descendant.Name == "GivePizza" then
+                door = descendant
+                break
             end
+        end
+
+        if door and car then
+            -- Subirse al carro
+            local carSeat = car:FindFirstChild("Seat")
+            if carSeat then
+                character.HumanoidRootPart.CFrame = carSeat.CFrame
+                wait(1) -- Dar tiempo para que el personaje se "suba"
+            end
+
+            -- Tween para mover el carro a la puerta
+            local carTweenInfo = TweenInfo.new(
+                3, -- Tiempo
+                Enum.EasingStyle.Smooth, -- Estilo
+                Enum.EasingDirection.Out -- Dirección
+            )
+            local tweenGoal = {CFrame = door.CFrame - Vector3.new(0, 0, 5)} -- Detenerse un poco antes de la puerta
+            local carTween = TweenService:Create(car.PrimaryPart, carTweenInfo, tweenGoal)
+            carTween:Play()
+            carTween.Completed:Wait()
+
+            -- Bajarse del carro
+            if carSeat then
+                character.HumanoidRootPart.CFrame = carSeat.CFrame + Vector3.new(0, 5, 0) -- Salir del carro
+                wait(1)
+            end
+
+            -- Entregar la pizza/soda
+            character.HumanoidRootPart.CFrame = door.CFrame
         end
     end
 end)
