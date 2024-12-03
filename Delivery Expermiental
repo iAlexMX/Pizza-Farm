@@ -9,7 +9,7 @@ player.Character.ChildAdded:Connect(function(item)
         -- Variable para verificar si el jugador ha seleccionado pizza/soda
         local selectedItem = nil
 
-        -- Buscar si hay una pizza o soda seleccionada
+        -- Función para verificar si hay una pizza o soda seleccionada
         local function checkSelectedItem()
             for _, descendant in ipairs(player.Backpack:GetChildren()) do
                 if descendant:IsA("Tool") and (descendant.Name == "Pizza" or descendant.Name == "Soda") then
@@ -19,6 +19,27 @@ player.Character.ChildAdded:Connect(function(item)
             end
         end
         
+        -- Función para deshabilitar los asientos
+        local function disableSeats()
+            for _, part in ipairs(workspace:GetDescendants()) do
+                if part:IsA("Seat") or part:IsA("VehicleSeat") then
+                    part.Disabled = true -- Deshabilitar los asientos
+                end
+            end
+        end
+        
+        -- Función para habilitar los asientos
+        local function enableSeats()
+            for _, part in ipairs(workspace:GetDescendants()) do
+                if part:IsA("Seat") or part:IsA("VehicleSeat") then
+                    part.Disabled = false -- Habilitar los asientos
+                end
+            end
+        end
+
+        -- Deshabilitar los asientos antes de comenzar el movimiento
+        disableSeats()
+
         -- Reemplazar la lógica de movimiento hacia la pierna por la lógica de la puerta o la pierna
         for i = 1, #door do
             if door[i].Name == "GivePizza" then
@@ -59,7 +80,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 4. Verificar si se ha seleccionado una pizza o soda
                     local tweenInfo4 = TweenInfo.new(
-                        0.10, -- Duración rápida para bajar (300 ms)
+                        0.5, -- Duración rápida para bajar (300 ms)
                         Enum.EasingStyle.Linear,
                         Enum.EasingDirection.InOut
                     )
@@ -92,6 +113,11 @@ player.Character.ChildAdded:Connect(function(item)
                             tween3:Play() -- Sube hacia la puerta
                             tween3.Completed:Connect(function()
                                 tween4:Play() -- Mueve finalmente a la posición seleccionada (puerta o pierna)
+
+                                -- Una vez que el movimiento haya terminado, habilitar los asientos nuevamente
+                                tween4.Completed:Connect(function()
+                                    enableSeats()
+                                end)
                             end)
                         end)
                     end)
