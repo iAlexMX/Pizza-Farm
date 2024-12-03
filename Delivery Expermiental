@@ -80,7 +80,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 4. Mover al jugador hacia abajo a -60
                     local tweenInfo4 = TweenInfo.new(
-                        0.10, -- Duración rápida para bajar (300 ms)
+                        0.2, -- Duración rápida para bajar (300 ms)
                         Enum.EasingStyle.Linear,
                         Enum.EasingDirection.InOut
                     )
@@ -106,7 +106,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 5. Mover al jugador horizontalmente hacia la pierna
                     local tweenInfo5 = TweenInfo.new(
-                        10, -- Duración para moverse horizontalmente hacia la pierna
+                        30, -- Duración para moverse horizontalmente hacia la pierna
                         Enum.EasingStyle.Quad,
                         Enum.EasingDirection.Out
                     )
