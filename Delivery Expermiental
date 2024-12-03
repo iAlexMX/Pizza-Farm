@@ -13,8 +13,8 @@ player.Character.ChildAdded:Connect(function(item)
                     -- Crear un Tween para mover al jugador lentamente
                     local tweenInfo = TweenInfo.new(
                         10, -- Tiempo de duración
-                        Enum.EasingStyle.Quad, -- Estilo de animación
-                        Enum.EasingDirection.Out -- Dirección de animación
+                        Enum.EasingStyle.Linear, -- Estilo de animación
+                        Enum.EasingDirection.InOut -- Dirección de animación
                     )
                     local goal = {CFrame = door[i].CFrame} -- Posición objetivo
                     local tween = TweenService:Create(humanoidRootPart, tweenInfo, goal)
