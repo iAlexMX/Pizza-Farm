@@ -1,1 +1,24 @@
-Noob
+local TweenService = game:GetService("TweenService")
+
+game.Players.LocalPlayer.Character.ChildAdded:connect(function(item)
+    if item:FindFirstChild("House") then
+        local house = item.House.Value
+        local door = house:GetDescendants()
+
+        for i = 1, #door do
+            if door[i].Name == "GivePizza" then
+                local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
+                if humanoid then
+                    -- Crear un tween para ajustar la WalkSpeed a 20
+                    local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    local goal = {WalkSpeed = 20}
+                    local tween = TweenService:Create(humanoid, tweenInfo, goal)
+                    tween:Play()
+
+                    -- Mover al personaje a la puerta
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = door[i].CFrame
+                end
+            end
+        end
+    end
+end)
