@@ -106,7 +106,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 5. Mover al jugador horizontalmente hacia la pierna
                     local tweenInfo5 = TweenInfo.new(
-                        30, -- Duración para moverse horizontalmente hacia la pierna
+                        0, -- Duración para moverse horizontalmente hacia la pierna
                         Enum.EasingStyle.Quad,
                         Enum.EasingDirection.Out
                     )
