@@ -1,126 +1,69 @@
 local TweenService = game:GetService("TweenService")
 local player = game.Players.LocalPlayer
+local lastDoor = nil -- Variable para almacenar la última puerta utilizada
+local isAtLastDoor = false -- Variable para indicar si ya está debajo de la última puerta
 
+-- Función para mover al jugador con Tween
+local function moveWithTween(humanoidRootPart, targetCFrame, duration, onComplete)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+    local goal = {CFrame = targetCFrame}
+    local tween = TweenService:Create(humanoidRootPart, tweenInfo, goal)
+    tween:Play()
+    if onComplete then
+        tween.Completed:Connect(onComplete)
+    end
+end
+
+-- Función para manejar el movimiento del jugador
+local function handleMovement(humanoidRootPart, door)
+    local belowDoorPosition = door.CFrame * CFrame.new(0, -60, 0) -- Posición fija debajo de la puerta
+    local doorPosition = door.CFrame -- Posición en la puerta
+
+    -- Verificar si la puerta es la misma que la última
+    if lastDoor == door and isAtLastDoor then
+        -- Si es la misma puerta y ya está debajo, no hacer nada más
+        return
+    end
+
+    -- Si es una nueva puerta o no estaba debajo de la anterior
+    lastDoor = door -- Actualizar la última puerta
+    isAtLastDoor = false -- Aún no está debajo de esta puerta
+
+    -- Secuencia de movimientos
+    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- Baja inicial
+
+    -- Paso 1: Baja rápidamente a -60
+    moveWithTween(humanoidRootPart, belowStartPosition, 0.2, function()
+        -- Paso 2: Moverse horizontalmente a -60 debajo de la puerta
+        moveWithTween(humanoidRootPart, belowDoorPosition, 10, function()
+            -- Paso 3: Subir a la puerta
+            moveWithTween(humanoidRootPart, doorPosition, 2, function()
+                -- Paso 4: Bajar a -60 y quedarse allí
+                moveWithTween(humanoidRootPart, belowDoorPosition, 0.9, function()
+                    isAtLastDoor = true -- Ahora está debajo de la puerta
+                end)
+            end)
+        end)
+    end)
+end
+
+-- Evento para detectar cuando se equipa una pizza o soda
 player.Character.ChildAdded:Connect(function(item)
-    if item:FindFirstChild("House") then
-        local house = item.House.Value
-        local door = house:GetDescendants()
-        
-        -- Variable para verificar si el jugador ha seleccionado pizza/soda
-        local selectedItem = nil
-
-        -- Función para verificar si hay una pizza o soda seleccionada
-        local function checkSelectedItem()
-            for _, descendant in ipairs(player.Backpack:GetChildren()) do
-                if descendant:IsA("Tool") and (descendant.Name == "Pizza" or descendant.Name == "Soda") then
-                    selectedItem = descendant
-                    break
-                end
-            end
-        end
-        
-        -- Función para deshabilitar los asientos
-        local function disableSeats()
-            for _, part in ipairs(workspace:GetDescendants()) do
-                if part:IsA("Seat") or part:IsA("VehicleSeat") then
-                    part.Disabled = true -- Deshabilitar los asientos
-                end
-            end
-        end
-        
-        -- Función para habilitar los asientos
-        local function enableSeats()
-            for _, part in ipairs(workspace:GetDescendants()) do
-                if part:IsA("Seat") or part:IsA("VehicleSeat") then
-                    part.Disabled = false -- Habilitar los asientos
-                end
-            end
-        end
-
-        -- Deshabilitar los asientos antes de comenzar el movimiento
-        disableSeats()
-
-        -- Reemplazar la lógica de movimiento hacia la pierna por la lógica de la puerta o la pierna
-        for i = 1, #door do
-            if door[i].Name == "GivePizza" then
-                local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    -- Posición por debajo inicial
-                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
-                    local doorPosition = door[i].CFrame -- Posición exacta de la puerta
-                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
-                    
-                    -- 1. Tween para bajar rápidamente
-                    local tweenInfo1 = TweenInfo.new(
-                        0.2, -- Duración rápida para bajar (200 ms)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal1 = {CFrame = belowStartPosition}
-                    local tween1 = TweenService:Create(humanoidRootPart, tweenInfo1, goal1)
-
-                    -- 2. Tween para moverse lentamente hacia la puerta (por debajo del mapa)
-                    local tweenInfo2 = TweenInfo.new(
-                        10, -- Duración para moverse horizontalmente (10 segundos)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal2 = {CFrame = belowDoorPosition}
-                    local tween2 = TweenService:Create(humanoidRootPart, tweenInfo2, goal2)
-
-                    -- 3. Tween para subir hacia la puerta
-                    local tweenInfo3 = TweenInfo.new(
-                        2, -- Duración para subir hacia la puerta
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal3 = {CFrame = doorPosition}
-                    local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
-
-                    -- 4. Verificar si se ha seleccionado una pizza o soda
-                    local tweenInfo4 = TweenInfo.new(
-                        5, -- Duración rápida para bajar (300 ms)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-
-                    local goal4
-                    local rightLeg = workspace:FindFirstChild("Skeleton") and workspace.Skeleton:FindFirstChild("Right Leg")
-                    
-                    -- Verificar si se ha seleccionado una pizza o soda
-                    checkSelectedItem()
-
-                    if selectedItem then
-                        -- Si se seleccionó una pizza o soda, mover a la puerta de la pizza/soda
-                        goal4 = {CFrame = door[i].CFrame} -- Mover hacia la puerta de la pizza/soda seleccionada
-                    elseif rightLeg then
-                        -- Si no se ha seleccionado una pizza o soda, mover a la pierna
-                        goal4 = {CFrame = rightLeg.CFrame} -- Mover a la posición de Right Leg
-                    else
-                        -- Si no se encuentra la pierna, seguir con la posición por defecto
-                        warn("No se encontró la pieza Right Leg en Skeleton.")
-                        goal4 = {CFrame = finalBelowPosition} -- Si no se encuentra la pierna, seguir con la posición por defecto
+    if item:IsA("Tool") and (item.Name == "Pizza" or item.Name == "Soda") then
+        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        if humanoidRootPart then
+            local house = item:FindFirstChild("House") and item.House.Value
+            if house then
+                local door = nil
+                for _, part in ipairs(house:GetDescendants()) do
+                    if part.Name == "GivePizza" then
+                        door = part
+                        break
                     end
+                end
 
-                    local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
-
-                    -- Secuencia de Tweens
-                    tween1:Play() -- Baja rápidamente
-                    tween1.Completed:Connect(function()
-                        tween2:Play() -- Se mueve lentamente hacia la puerta
-                        tween2.Completed:Connect(function()
-                            tween3:Play() -- Sube hacia la puerta
-                            tween3.Completed:Connect(function()
-                                tween4:Play() -- Mueve finalmente a la posición seleccionada (puerta o pierna)
-
-                                -- Una vez que el movimiento haya terminado, habilitar los asientos nuevamente
-                                tween4.Completed:Connect(function()
-                                    enableSeats()
-                                end)
-                            end)
-                        end)
-                    end)
+                if door then
+                    handleMovement(humanoidRootPart, door)
                 end
             end
         end
