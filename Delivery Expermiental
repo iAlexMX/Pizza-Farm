@@ -42,15 +42,20 @@ local function smoothTeleportToDoor(door)
     tweenMove:Play()
     tweenMove.Completed:Wait()
 
-    -- Subir a la puerta (0.2 segundos)
-    local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
-    tweenUp:Play()
-    tweenUp.Completed:Wait()
+    -- Solo subir a la puerta si es una puerta nueva (no la misma que antes)
+    if currentDoor ~= door then
+        local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
+        tweenUp:Play()
+        tweenUp.Completed:Wait()
+    end
 
     -- Bajar nuevamente debajo de la puerta (0.1 segundos)
     local tweenDownToFinal = TweenService:Create(humanoidRootPart, TweenInfo.new(0.1), {CFrame = CFrame.new(belowDoorPosition)})
     tweenDownToFinal:Play()
     tweenDownToFinal.Completed:Wait()
+
+    -- Actualizar la puerta actual
+    currentDoor = door
 
     isMoving = false
 end
@@ -65,7 +70,6 @@ character.ChildAdded:Connect(function(item)
             if door.Name == "GivePizza" then
                 -- Mover hacia la puerta, independientemente de si es nueva o no
                 smoothTeleportToDoor(door)
-                currentDoor = door
                 break
             end
         end
