@@ -1,4 +1,4 @@
-local TweenService = game:GetService("TweenService")
+local PathfindingService = game:GetService("PathfindingService")
 
 game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
     if item:FindFirstChild("House") then
@@ -7,31 +7,46 @@ game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
 
         for i = 1, #door do
             if door[i].Name == "GivePizza" then
-                local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-                local rootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                
+                local character = game.Players.LocalPlayer.Character
+                local humanoid = character:FindFirstChild("Humanoid")
+                local rootPart = character:FindFirstChild("HumanoidRootPart")
+
                 if humanoid and rootPart then
-                    -- Ajustar WalkSpeed a 20
+                    -- Ajustar la velocidad de caminar a 20
                     humanoid.WalkSpeed = 20
 
-                    -- Crear un tween para mover suavemente al jugador hacia la puerta
-                    local targetPosition = door[i].CFrame.Position
-                    local tweenInfo = TweenInfo.new(
-                        2, -- Duración del movimiento (en segundos)
-                        Enum.EasingStyle.Linear, -- Estilo de movimiento (lineal para suavidad)
-                        Enum.EasingDirection.InOut -- Dirección del tween
-                    )
+                    -- Crear una ruta segura hacia la puerta
+                    local path = PathfindingService:CreatePath({
+                        AgentRadius = 2, -- Radio del personaje
+                        AgentHeight = 5, -- Altura del personaje
+                        AgentCanJump = true, -- Permitir saltar
+                        AgentJumpHeight = 5, -- Altura máxima de salto
+                        AgentMaxSlope = 45 -- Inclinación máxima
+                    })
 
-                    local goal = {CFrame = CFrame.new(targetPosition)}
+                    path:ComputeAsync(rootPart.Position, door[i].Position)
 
-                    local tween = TweenService:Create(rootPart, tweenInfo, goal)
-                    tween:Play()
+                    if path.Status == Enum.PathStatus.Complete then
+                        local waypoints = path:GetWaypoints()
 
-                    -- Esperar a que el tween termine antes de continuar
-                    tween.Completed:Wait()
+                        for _, waypoint in ipairs(waypoints) do
+                            -- Mover al personaje hacia cada waypoint
+                            humanoid:MoveTo(waypoint.Position)
 
-                    -- Opcional: Restaurar la velocidad del jugador después del movimiento
-                    humanoid.WalkSpeed = 16 -- Valor predeterminado de WalkSpeed
+                            -- Saltar si el waypoint requiere un salto
+                            if waypoint.Action == Enum.PathWaypointAction.Jump then
+                                humanoid.Jump = true
+                            end
+
+                            -- Esperar a que el personaje alcance el waypoint
+                            humanoid.MoveToFinished:Wait()
+                        end
+
+                        -- Opcional: Restaurar la velocidad después de llegar a la puerta
+                        humanoid.WalkSpeed = 16 -- Valor predeterminado
+                    else
+                        warn("No se pudo encontrar una ruta hacia la puerta.")
+                    end
                 end
             end
         end
