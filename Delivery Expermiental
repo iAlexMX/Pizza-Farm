@@ -10,10 +10,11 @@ player.Character.ChildAdded:Connect(function(item)
             if door[i].Name == "GivePizza" then
                 local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
                 if humanoidRootPart then
-                    -- Posición por debajo de la puerta
-                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -70, 0) -- 70 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -70, 0) -- 70 unidades abajo desde la puerta
+                    -- Posición por debajo inicial
+                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
+                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
                     local doorPosition = door[i].CFrame -- Posición exacta de la puerta
+                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo de la puerta
 
                     -- 1. Tween para bajar rápidamente
                     local tweenInfo1 = TweenInfo.new(
@@ -42,12 +43,24 @@ player.Character.ChildAdded:Connect(function(item)
                     local goal3 = {CFrame = doorPosition}
                     local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
 
+                    -- 4. Tween para bajar nuevamente a -55
+                    local tweenInfo4 = TweenInfo.new(
+                        0.2, -- Duración rápida para bajar (300 ms)
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
+                    )
+                    local goal4 = {CFrame = finalBelowPosition}
+                    local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
+
                     -- Secuencia de Tweens
                     tween1:Play() -- Baja rápidamente
                     tween1.Completed:Connect(function()
                         tween2:Play() -- Se mueve lentamente hacia la puerta
                         tween2.Completed:Connect(function()
                             tween3:Play() -- Sube hacia la puerta
+                            tween3.Completed:Connect(function()
+                                tween4:Play() -- Baja nuevamente a -60
+                            end)
                         end)
                     end)
                 end
