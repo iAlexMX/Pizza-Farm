@@ -5,81 +5,118 @@ player.Character.ChildAdded:Connect(function(item)
     if item:FindFirstChild("House") then
         local house = item.House.Value
         local door = house:GetDescendants()
+        
+        -- Variable para verificar si el jugador ha seleccionado pizza/soda
         local selectedItem = nil
 
-        -- Verificar si el jugador tiene pizza o soda seleccionada
+        -- Función para verificar si hay una pizza o soda seleccionada
         local function checkSelectedItem()
             for _, descendant in ipairs(player.Backpack:GetChildren()) do
                 if descendant:IsA("Tool") and (descendant.Name == "Pizza" or descendant.Name == "Soda") then
                     selectedItem = descendant
-                    return
+                    break
                 end
             end
         end
-
-        -- Deshabilitar y habilitar asientos
-        local function setSeats(enabled)
+        
+        -- Función para deshabilitar los asientos
+        local function disableSeats()
             for _, part in ipairs(workspace:GetDescendants()) do
                 if part:IsA("Seat") or part:IsA("VehicleSeat") then
-                    part.Disabled = not enabled
+                    part.Disabled = true -- Deshabilitar los asientos
+                end
+            end
+        end
+        
+        -- Función para habilitar los asientos
+        local function enableSeats()
+            for _, part in ipairs(workspace:GetDescendants()) do
+                if part:IsA("Seat") or part:IsA("VehicleSeat") then
+                    part.Disabled = false -- Habilitar los asientos
                 end
             end
         end
 
-        -- Deshabilitar los asientos antes de comenzar
-        setSeats(false)
+        -- Deshabilitar los asientos antes de comenzar el movimiento
+        disableSeats()
 
+        -- Reemplazar la lógica de movimiento hacia la pierna por la lógica de la puerta o la pierna
         for i = 1, #door do
             if door[i].Name == "GivePizza" then
                 local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
                 if humanoidRootPart then
-                    local doorCFrame = door[i].CFrame
-                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0)
-                    local belowDoorPosition = doorCFrame * CFrame.new(0, -60, 0)
-                    local finalBelowPosition = doorCFrame * CFrame.new(0, -60, 0)
-
-                    -- Tween 1: Bajar rápidamente
-                    local tweenInfo1 = TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    -- Posición por debajo inicial
+                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
+                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
+                    local doorPosition = door[i].CFrame -- Posición exacta de la puerta
+                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
+                    
+                    -- 1. Tween para bajar rápidamente
+                    local tweenInfo1 = TweenInfo.new(
+                        0.2, -- Duración rápida para bajar (200 ms)
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
+                    )
                     local goal1 = {CFrame = belowStartPosition}
                     local tween1 = TweenService:Create(humanoidRootPart, tweenInfo1, goal1)
 
-                    -- Tween 2: Mover lentamente hacia la puerta
-                    local tweenInfo2 = TweenInfo.new(10, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    -- 2. Tween para moverse lentamente hacia la puerta (por debajo del mapa)
+                    local tweenInfo2 = TweenInfo.new(
+                        10, -- Duración para moverse horizontalmente (10 segundos)
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
+                    )
                     local goal2 = {CFrame = belowDoorPosition}
                     local tween2 = TweenService:Create(humanoidRootPart, tweenInfo2, goal2)
 
-                    -- Tween 3: Subir a la puerta
-                    local tweenInfo3 = TweenInfo.new(2, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-                    local goal3 = {CFrame = doorCFrame}
+                    -- 3. Tween para subir hacia la puerta
+                    local tweenInfo3 = TweenInfo.new(
+                        2, -- Duración para subir hacia la puerta
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
+                    )
+                    local goal3 = {CFrame = doorPosition}
                     local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
 
-                    -- Tween 4: Bajar lentamente a la pierna o puerta según el caso
-                    local tweenInfo4 = TweenInfo.new(10, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    -- 4. Verificar si se ha seleccionado una pizza o soda
+                    local tweenInfo4 = TweenInfo.new(
+                        0.10, -- Duración rápida para bajar (300 ms)
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
+                    )
+
                     local goal4
                     local rightLeg = workspace:FindFirstChild("Skeleton") and workspace.Skeleton:FindFirstChild("Right Leg")
-
+                    
+                    -- Verificar si se ha seleccionado una pizza o soda
                     checkSelectedItem()
+
                     if selectedItem then
-                        goal4 = {CFrame = doorCFrame}
+                        -- Si se seleccionó una pizza o soda, mover a la puerta de la pizza/soda
+                        goal4 = {CFrame = door[i].CFrame} -- Mover hacia la puerta de la pizza/soda seleccionada
                     elseif rightLeg then
-                        goal4 = {CFrame = rightLeg.CFrame}
+                        -- Si no se ha seleccionado una pizza o soda, mover a la pierna
+                        goal4 = {CFrame = rightLeg.CFrame} -- Mover a la posición de Right Leg
                     else
-                        warn("No se encontró la pierna, moviendo a la posición por defecto.")
-                        goal4 = {CFrame = finalBelowPosition}
+                        -- Si no se encuentra la pierna, seguir con la posición por defecto
+                        warn("No se encontró la pieza Right Leg en Skeleton.")
+                        goal4 = {CFrame = finalBelowPosition} -- Si no se encuentra la pierna, seguir con la posición por defecto
                     end
 
                     local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
 
-                    -- Ejecutar secuencia de tweens
-                    tween1:Play()
+                    -- Secuencia de Tweens
+                    tween1:Play() -- Baja rápidamente
                     tween1.Completed:Connect(function()
-                        tween2:Play()
+                        tween2:Play() -- Se mueve lentamente hacia la puerta
                         tween2.Completed:Connect(function()
-                            tween3:Play()
+                            tween3:Play() -- Sube hacia la puerta
                             tween3.Completed:Connect(function()
-                                tween4:Play()
+                                tween4:Play() -- Mueve finalmente a la posición seleccionada (puerta o pierna)
+
+                                -- Una vez que el movimiento haya terminado, habilitar los asientos nuevamente
                                 tween4.Completed:Connect(function()
-                                    setSeats(true) -- Habilitar los asientos al terminar
+                                    enableSeats()
                                 end)
                             end)
                         end)
