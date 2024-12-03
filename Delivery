@@ -1,0 +1,21 @@
+game.Players.LocalPlayer.Character.ChildAdded:connect(function(item)
+
+if item:findFirstChild("House") then
+
+local house = item.House.Value
+
+local door = house:GetDescendants()
+
+for i=1,#door do
+
+if door[i].Name == "GivePizza" then
+
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = door[i].CFrame
+
+end
+
+end
+
+end
+
+end)
