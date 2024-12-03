@@ -49,9 +49,9 @@ player.Character.ChildAdded:Connect(function(item)
                     local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
                     local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
                     local doorPosition = door[i].CFrame -- Posición exacta de la puerta
-                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
+                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo de la puerta
                     
-                    -- 1. Tween para bajar rápidamente
+                    -- 1. Tween para bajar rápidamente a la posición de -60
                     local tweenInfo1 = TweenInfo.new(
                         0.2, -- Duración rápida para bajar (200 ms)
                         Enum.EasingStyle.Linear,
@@ -78,13 +78,12 @@ player.Character.ChildAdded:Connect(function(item)
                     local goal3 = {CFrame = doorPosition}
                     local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
 
-                    -- 4. Verificar si se ha seleccionado una pizza o soda
+                    -- 4. Mover al jugador hacia abajo a -60
                     local tweenInfo4 = TweenInfo.new(
-                        0.5, -- Duración rápida para bajar (300 ms)
+                        0.10, -- Duración rápida para bajar (300 ms)
                         Enum.EasingStyle.Linear,
                         Enum.EasingDirection.InOut
                     )
-
                     local goal4
                     local rightLeg = workspace:FindFirstChild("Skeleton") and workspace.Skeleton:FindFirstChild("Right Leg")
                     
@@ -105,6 +104,15 @@ player.Character.ChildAdded:Connect(function(item)
 
                     local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
 
+                    -- 5. Mover al jugador horizontalmente hacia la pierna
+                    local tweenInfo5 = TweenInfo.new(
+                        10, -- Duración para moverse horizontalmente hacia la pierna
+                        Enum.EasingStyle.Quad,
+                        Enum.EasingDirection.Out
+                    )
+                    local goal5 = {CFrame = rightLeg.CFrame} -- Mover hacia la pierna
+                    local tween5 = TweenService:Create(humanoidRootPart, tweenInfo5, goal5)
+
                     -- Secuencia de Tweens
                     tween1:Play() -- Baja rápidamente
                     tween1.Completed:Connect(function()
@@ -112,14 +120,17 @@ player.Character.ChildAdded:Connect(function(item)
                         tween2.Completed:Connect(function()
                             tween3:Play() -- Sube hacia la puerta
                             tween3.Completed:Connect(function()
-                                tween4:Play() -- Mueve finalmente a la posición seleccionada (puerta o pierna)
-
-                                -- Una vez que el movimiento haya terminado, habilitar los asientos nuevamente
+                                tween4:Play() -- Mueve primero hacia la posición seleccionada (puerta o pierna)
                                 tween4.Completed:Connect(function()
-                                    enableSeats()
+                                    tween5:Play() -- Mueve horizontalmente hacia la pierna
                                 end)
                             end)
                         end)
+                    end)
+
+                    -- Habilitar los asientos después de que el jugador haya completado el movimiento
+                    tween5.Completed:Connect(function()
+                        enableSeats()
                     end)
                 end
             end
