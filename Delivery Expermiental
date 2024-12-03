@@ -10,11 +10,20 @@ player.Character.ChildAdded:Connect(function(item)
             if door[i].Name == "GivePizza" then
                 local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
                 if humanoidRootPart then
+                    -- Crear una plataforma invisible en -55
+                    local platform = Instance.new("Part")
+                    platform.Size = Vector3.new(10, 1, 10) -- Tamaño de la plataforma
+                    platform.Position = door[i].Position - Vector3.new(0, 55, 0) -- 60 unidades abajo de la puerta
+                    platform.Anchored = true -- Fijar la plataforma para que no se mueva
+                    platform.Transparency = 1 -- Hacerla invisible
+                    platform.CanCollide = true -- Permitir que el jugador la pise
+                    platform.Parent = workspace -- Añadirla al mundo
+
                     -- Posición por debajo inicial
                     local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
+                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 50 unidades abajo desde la puerta
                     local doorPosition = door[i].CFrame -- Posición exacta de la puerta
-                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo de la puerta
+                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
 
                     -- 1. Tween para bajar rápidamente
                     local tweenInfo1 = TweenInfo.new(
@@ -59,9 +68,20 @@ player.Character.ChildAdded:Connect(function(item)
                         tween2.Completed:Connect(function()
                             tween3:Play() -- Sube hacia la puerta
                             tween3.Completed:Connect(function()
-                                tween4:Play() -- Baja nuevamente a -60
+                                tween4:Play() -- Baja nuevamente a -55
+                                tween4.Completed:Connect(function()
+                                    humanoidRootPart.Anchored = true -- Anclar al jugador en esa posición
+                                end)
                             end)
                         end)
+                    end)
+
+                    -- Limpiar la plataforma cuando se detecte un nuevo objeto
+                    item.AncestryChanged:Connect(function()
+                        if not item:IsDescendantOf(workspace) then
+                            humanoidRootPart.Anchored = false -- Desanclar al jugador
+                            platform:Destroy() -- Eliminar la plataforma
+                        end
                     end)
                 end
             end
