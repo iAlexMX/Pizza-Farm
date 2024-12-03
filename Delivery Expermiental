@@ -11,7 +11,7 @@ player.Character.ChildAdded:Connect(function(item)
                 local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
                 if humanoidRootPart then
                     -- Posición por debajo de la puerta
-                    local belowPosition = door[i].CFrame * CFrame.new(0, -50, 0) -- 50 unidades por debajo
+                    local belowPosition = door[i].CFrame * CFrame.new(0, -80, 0) -- 80 unidades por debajo
 
                     -- Tween para mover al personaje por debajo de la puerta
                     local tweenInfo1 = TweenInfo.new(
