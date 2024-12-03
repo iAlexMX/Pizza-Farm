@@ -54,7 +54,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 4. Tween para bajar nuevamente a -55
                     local tweenInfo4 = TweenInfo.new(
-                        0.2, -- Duración rápida para bajar (300 ms)
+                        0.3, -- Duración rápida para bajar (300 ms)
                         Enum.EasingStyle.Linear,
                         Enum.EasingDirection.InOut
                     )
