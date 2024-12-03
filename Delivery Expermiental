@@ -1,71 +1,78 @@
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
-local player = game.Players.LocalPlayer
-local lastDoor = nil -- Variable para almacenar la última puerta utilizada
-local isAtLastDoor = false -- Variable para indicar si ya está debajo de la última puerta
+local RunService = game:GetService("RunService")
 
--- Función para mover al jugador con Tween
-local function moveWithTween(humanoidRootPart, targetCFrame, duration, onComplete)
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-    local goal = {CFrame = targetCFrame}
-    local tween = TweenService:Create(humanoidRootPart, tweenInfo, goal)
-    tween:Play()
-    if onComplete then
-        tween.Completed:Connect(onComplete)
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local isMoving = false
+local targetYPosition = -60 -- Posición bajo el mapa
+local currentDoor = nil
+
+-- Desactivar asientos
+for _, seat in pairs(workspace:GetDescendants()) do
+    if seat:IsA("Seat") or seat:IsA("VehicleSeat") then
+        seat.Disabled = true
     end
 end
 
--- Función para manejar el movimiento del jugador
-local function handleMovement(humanoidRootPart, door)
-    local belowDoorPosition = door.CFrame * CFrame.new(0, -60, 0) -- Posición fija debajo de la puerta
-    local doorPosition = door.CFrame -- Posición en la puerta
-
-    -- Verificar si la puerta es la misma que la última
-    if lastDoor == door and isAtLastDoor then
-        -- Si es la misma puerta y ya está debajo, no hacer nada más
-        return
+-- Evitar muerte por caída
+RunService.Heartbeat:Connect(function()
+    if humanoidRootPart.Position.Y < -50 then
+        humanoidRootPart.Velocity = Vector3.zero
     end
+end)
 
-    -- Si es una nueva puerta o no estaba debajo de la anterior
-    lastDoor = door -- Actualizar la última puerta
-    isAtLastDoor = false -- Aún no está debajo de esta puerta
+-- Función para teletransportarse suavemente
+local function smoothTeleportToDoor(door)
+    isMoving = true
 
-    -- Secuencia de movimientos
-    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- Baja inicial
+    local currentPosition = humanoidRootPart.Position
+    local belowCurrentPosition = Vector3.new(currentPosition.X, targetYPosition, currentPosition.Z)
+    local belowDoorPosition = Vector3.new(door.Position.X, targetYPosition, door.Position.Z)
+    local aboveDoorPosition = Vector3.new(door.Position.X, door.Position.Y + 5, door.Position.Z)
 
-    -- Paso 1: Baja rápidamente a -60
-    moveWithTween(humanoidRootPart, belowStartPosition, 0.2, function()
-        -- Paso 2: Moverse horizontalmente a -60 debajo de la puerta
-        moveWithTween(humanoidRootPart, belowDoorPosition, 10, function()
-            -- Paso 3: Subir a la puerta
-            moveWithTween(humanoidRootPart, doorPosition, 2, function()
-                -- Paso 4: Bajar a -60 y quedarse allí
-                moveWithTween(humanoidRootPart, belowDoorPosition, 0.9, function()
-                    isAtLastDoor = true -- Ahora está debajo de la puerta
-                end)
-            end)
-        end)
-    end)
+    -- Bajada rápida desde la posición actual (0 segundos)
+    local tweenDown = TweenService:Create(humanoidRootPart, TweenInfo.new(0), {CFrame = CFrame.new(belowCurrentPosition)})
+    tweenDown:Play()
+    tweenDown.Completed:Wait()
+
+    -- Movimiento por debajo hacia la puerta (10 segundos)
+    local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(10), {CFrame = CFrame.new(belowDoorPosition)})
+    tweenMove:Play()
+    tweenMove.Completed:Wait()
+
+    -- Subir a la puerta (0.2 segundos)
+    local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
+    tweenUp:Play()
+    tweenUp.Completed:Wait()
+
+    -- Bajar nuevamente debajo de la puerta (0.1 segundos)
+    local tweenDownToFinal = TweenService:Create(humanoidRootPart, TweenInfo.new(0.1), {CFrame = CFrame.new(belowDoorPosition)})
+    tweenDownToFinal:Play()
+    tweenDownToFinal.Completed:Wait()
+
+    isMoving = false
 end
 
--- Evento para detectar cuando se equipa una pizza o soda
-player.Character.ChildAdded:Connect(function(item)
-    if item:IsA("Tool") and (item.Name == "Pizza" or item.Name == "Soda") then
-        local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-        if humanoidRootPart then
-            local house = item:FindFirstChild("House") and item.House.Value
-            if house then
-                local door = nil
-                for _, part in ipairs(house:GetDescendants()) do
-                    if part.Name == "GivePizza" then
-                        door = part
-                        break
-                    end
-                end
+-- Detectar cuando se equipa una pizza/soda
+character.ChildAdded:Connect(function(item)
+    if item:FindFirstChild("House") and not isMoving then
+        local house = item.House.Value
+        local doors = house:GetDescendants()
 
-                if door then
-                    handleMovement(humanoidRootPart, door)
-                end
+        for _, door in ipairs(doors) do
+            if door.Name == "GivePizza" then
+                -- Mover hacia la puerta, independientemente de si es nueva o no
+                smoothTeleportToDoor(door)
+                currentDoor = door
+                break
             end
         end
     end
+end)
+
+-- Detener el script al reiniciar
+player.CharacterAdded:Connect(function()
+    script:Destroy()
 end)
