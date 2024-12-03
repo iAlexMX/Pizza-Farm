@@ -11,8 +11,8 @@ player.Character.ChildAdded:Connect(function(item)
                 local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
                 if humanoidRootPart then
                     -- Posición por debajo de la puerta
-                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -80, 0) -- 80 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -80, 0) -- 80 unidades abajo desde la puerta
+                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -70, 0) -- 70 unidades abajo desde la posición actual
+                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -70, 0) -- 70 unidades abajo desde la puerta
                     local doorPosition = door[i].CFrame -- Posición exacta de la puerta
 
                     -- 1. Tween para bajar rápidamente
@@ -27,8 +27,8 @@ player.Character.ChildAdded:Connect(function(item)
                     -- 2. Tween para moverse lentamente hacia la puerta (por debajo del mapa)
                     local tweenInfo2 = TweenInfo.new(
                         10, -- Duración para moverse horizontalmente (10 segundos)
-                        Enum.EasingStyle.Quad,
-                        Enum.EasingDirection.Out
+                        Enum.EasingStyle.Linear,
+                        Enum.EasingDirection.InOut
                     )
                     local goal2 = {CFrame = belowDoorPosition}
                     local tween2 = TweenService:Create(humanoidRootPart, tweenInfo2, goal2)
