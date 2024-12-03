@@ -78,9 +78,9 @@ player.Character.ChildAdded:Connect(function(item)
                     local goal3 = {CFrame = doorPosition}
                     local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
 
-                    -- 4. Mover al jugador hacia abajo a -60
+                    -- 4. Mover al jugador hacia abajo a -60 (en lugar de bajar directamente a la pierna)
                     local tweenInfo4 = TweenInfo.new(
-                        0.2, -- Duración rápida para bajar (300 ms)
+                        0.2, -- Duración para mover a -60
                         Enum.EasingStyle.Linear,
                         Enum.EasingDirection.InOut
                     )
