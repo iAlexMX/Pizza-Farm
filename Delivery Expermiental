@@ -1,96 +1,134 @@
 local TweenService = game:GetService("TweenService")
 local player = game.Players.LocalPlayer
 
-player.Character.ChildAdded:Connect(function(item)
-    if item:FindFirstChild("House") then
-        local house = item.House.Value
-        local door = house:GetDescendants()
+-- Variable para guardar el estado de los tweens
+local tweens = {}
 
-        for i = 1, #door do
-            if door[i].Name == "GivePizza" then
-                local humanoidRootPart = player.Character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    -- Crear una plataforma invisible en -55
-                    local platform = Instance.new("Part")
-                    platform.Size = Vector3.new(10, 1, 10) -- Tamaño de la plataforma
-                    platform.Position = door[i].Position - Vector3.new(0, 55, 0) -- 55 unidades abajo de la puerta
-                    platform.Anchored = true -- Fijar la plataforma para que no se mueva
-                    platform.Transparency = 1 -- Hacerla invisible
-                    platform.CanCollide = true -- Permitir que el jugador la pise
-                    platform.Parent = workspace -- Añadirla al mundo
+-- Función que se llama cuando el personaje es reseteado
+local function onCharacterReset()
+    -- Detener todos los tweens si existen
+    for _, tween in pairs(tweens) do
+        tween:Pause()
+    end
 
-                    -- Posición por debajo inicial
-                    local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
-                    local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
-                    local doorPosition = door[i].CFrame -- Posición exacta de la puerta
-                    local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
+    -- Destruir la plataforma si existe
+    local platform = workspace:FindFirstChild("InvisiblePlatform")
+    if platform then
+        platform:Destroy()
+    end
 
-                    -- 1. Tween para bajar rápidamente
-                    local tweenInfo1 = TweenInfo.new(
-                        0.2, -- Duración rápida para bajar (200 ms)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal1 = {CFrame = belowStartPosition}
-                    local tween1 = TweenService:Create(humanoidRootPart, tweenInfo1, goal1)
+    -- Restablecer el anclaje del jugador
+    local humanoidRootPart = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        humanoidRootPart.Anchored = false -- Asegurarse de que el jugador no se quede anclado
+    end
+end
 
-                    -- 2. Tween para moverse lentamente hacia la puerta (por debajo del mapa)
-                    local tweenInfo2 = TweenInfo.new(
-                        10, -- Duración para moverse horizontalmente (10 segundos)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal2 = {CFrame = belowDoorPosition}
-                    local tween2 = TweenService:Create(humanoidRootPart, tweenInfo2, goal2)
+-- Conectar al evento de reinicio de personaje
+player.CharacterAdded:Connect(function()
+    -- Llamar la función que detiene todo cuando el personaje se reinicia
+    onCharacterReset()
 
-                    -- 3. Tween para subir hacia la puerta
-                    local tweenInfo3 = TweenInfo.new(
-                        2, -- Duración para subir hacia la puerta
-                        Enum.EasingStyle.Quad,
-                        Enum.EasingDirection.Out
-                    )
-                    local goal3 = {CFrame = doorPosition}
-                    local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
+    -- Esperar a que el nuevo personaje se cargue
+    player.Character:WaitForChild("HumanoidRootPart")
+    
+    -- Iniciar el proceso de la plataforma y tweens de nuevo
+    local character = player.Character
+    character.ChildAdded:Connect(function(item)
+        if item:FindFirstChild("House") then
+            local house = item.House.Value
+            local door = house:GetDescendants()
 
-                    -- 4. Tween para bajar nuevamente a -55
-                    local tweenInfo4 = TweenInfo.new(
-                        0.10, -- Duración rápida para bajar (300 ms)
-                        Enum.EasingStyle.Linear,
-                        Enum.EasingDirection.InOut
-                    )
-                    local goal4 = {CFrame = finalBelowPosition}
-                    local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
+            for i = 1, #door do
+                if door[i].Name == "GivePizza" then
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        -- Crear una plataforma invisible en -55
+                        local platform = Instance.new("Part")
+                        platform.Size = Vector3.new(10, 1, 10) -- Tamaño de la plataforma
+                        platform.Position = door[i].Position - Vector3.new(0, 55, 0) -- 55 unidades abajo de la puerta
+                        platform.Anchored = true -- Fijar la plataforma para que no se mueva
+                        platform.Transparency = 1 -- Hacerla invisible
+                        platform.CanCollide = true -- Permitir que el jugador la pise
+                        platform.Name = "InvisiblePlatform"
+                        platform.Parent = workspace -- Añadirla al mundo
 
-                    -- Secuencia de Tweens
-                    tween1:Play() -- Baja rápidamente
-                    tween1.Completed:Connect(function()
-                        tween2:Play() -- Se mueve lentamente hacia la puerta
-                        tween2.Completed:Connect(function()
-                            tween3:Play() -- Sube hacia la puerta
-                            tween3.Completed:Connect(function()
-                                tween4:Play() -- Baja nuevamente a -55
-                                tween4.Completed:Connect(function()
-                                    humanoidRootPart.Anchored = true -- Anclar al jugador en esa posición
+                        -- Posición por debajo inicial
+                        local belowStartPosition = humanoidRootPart.CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la posición actual
+                        local belowDoorPosition = door[i].CFrame * CFrame.new(0, -60, 0) -- 60 unidades abajo desde la puerta
+                        local doorPosition = door[i].CFrame -- Posición exacta de la puerta
+                        local finalBelowPosition = door[i].CFrame * CFrame.new(0, -55, 0) -- 55 unidades abajo de la puerta
+
+                        -- 1. Tween para bajar rápidamente
+                        local tweenInfo1 = TweenInfo.new(
+                            0.2, -- Duración rápida para bajar (200 ms)
+                            Enum.EasingStyle.Linear,
+                            Enum.EasingDirection.InOut
+                        )
+                        local goal1 = {CFrame = belowStartPosition}
+                        local tween1 = TweenService:Create(humanoidRootPart, tweenInfo1, goal1)
+
+                        -- 2. Tween para moverse lentamente hacia la puerta (por debajo del mapa)
+                        local tweenInfo2 = TweenInfo.new(
+                            10, -- Duración para moverse horizontalmente (10 segundos)
+                            Enum.EasingStyle.Linear,
+                            Enum.EasingDirection.InOut
+                        )
+                        local goal2 = {CFrame = belowDoorPosition}
+                        local tween2 = TweenService:Create(humanoidRootPart, tweenInfo2, goal2)
+
+                        -- 3. Tween para subir hacia la puerta
+                        local tweenInfo3 = TweenInfo.new(
+                            2, -- Duración para subir hacia la puerta
+                            Enum.EasingStyle.Quad,
+                            Enum.EasingDirection.Out
+                        )
+                        local goal3 = {CFrame = doorPosition}
+                        local tween3 = TweenService:Create(humanoidRootPart, tweenInfo3, goal3)
+
+                        -- 4. Tween para bajar nuevamente a -55
+                        local tweenInfo4 = TweenInfo.new(
+                            0.10, -- Duración rápida para bajar (300 ms)
+                            Enum.EasingStyle.Linear,
+                            Enum.EasingDirection.InOut
+                        )
+                        local goal4 = {CFrame = finalBelowPosition}
+                        local tween4 = TweenService:Create(humanoidRootPart, tweenInfo4, goal4)
+
+                        -- Guardar tweens en la tabla para poder detenerlos luego
+                        tweens = {tween1, tween2, tween3, tween4}
+
+                        -- Secuencia de Tweens
+                        tween1:Play() -- Baja rápidamente
+                        tween1.Completed:Connect(function()
+                            tween2:Play() -- Se mueve lentamente hacia la puerta
+                            tween2.Completed:Connect(function()
+                                tween3:Play() -- Sube hacia la puerta
+                                tween3.Completed:Connect(function()
+                                    tween4:Play() -- Baja nuevamente a -55
+                                    tween4.Completed:Connect(function()
+                                        humanoidRootPart.Anchored = true -- Anclar al jugador en esa posición
+                                    end)
                                 end)
                             end)
                         end)
-                    end)
 
-                    -- Asegurar que la plataforma siempre esté en la posición correcta
-                    while platform and platform.Parent do
-                        platform.Position = Vector3.new(door[i].Position.X, door[i].Position.Y - 55, door[i].Position.Z)
-                        wait(1) -- Espera 1 segundo entre actualizaciones
-                    end
-
-                    -- Limpiar la plataforma cuando se detecte un nuevo objeto
-                    item.AncestryChanged:Connect(function()
-                        if not item:IsDescendantOf(workspace) then
-                            humanoidRootPart.Anchored = false -- Desanclar al jugador
-                            platform:Destroy() -- Eliminar la plataforma
+                        -- Asegurar que la plataforma siempre esté en la posición correcta
+                        while platform and platform.Parent do
+                            platform.Position = Vector3.new(door[i].Position.X, door[i].Position.Y - 55, door[i].Position.Z)
+                            wait(1) -- Espera 1 segundo entre actualizaciones
                         end
-                    end)
+
+                        -- Limpiar la plataforma cuando se detecte un nuevo objeto
+                        item.AncestryChanged:Connect(function()
+                            if not item:IsDescendantOf(workspace) then
+                                humanoidRootPart.Anchored = false -- Desanclar al jugador
+                                platform:Destroy() -- Eliminar la plataforma
+                            end
+                        end)
+                    end
                 end
             end
         end
-    end
+    end)
 end)
