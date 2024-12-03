@@ -1,7 +1,7 @@
 local TweenService = game:GetService("TweenService")
 local player = game.Players.LocalPlayer
 
--- Variable para guardar el estado de los tweens
+-- Variable para guardar los tweens
 local tweens = {}
 
 -- Función que se llama cuando el personaje es reseteado
@@ -31,8 +31,8 @@ player.CharacterAdded:Connect(function()
 
     -- Esperar a que el nuevo personaje se cargue
     player.Character:WaitForChild("HumanoidRootPart")
-    
-    -- Iniciar el proceso de la plataforma y tweens de nuevo
+
+    -- Reiniciar el proceso solo cuando el jugador esté preparado
     local character = player.Character
     character.ChildAdded:Connect(function(item)
         if item:FindFirstChild("House") then
