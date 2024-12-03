@@ -10,7 +10,7 @@ game.Players.LocalPlayer.Character.ChildAdded:connect(function(item)
                 local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
                 if humanoid then
                     -- Crear un tween para ajustar la WalkSpeed a 20
-                    local tweenInfo = TweenInfo.new(30, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
                     local goal = {WalkSpeed = 20}
                     local tween = TweenService:Create(humanoid, tweenInfo, goal)
                     tween:Play()
