@@ -1,6 +1,6 @@
 local TweenService = game:GetService("TweenService")
 
-game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
+game.Players.LocalPlayer.Character.ChildAdded:connect(function(item)
     if item:FindFirstChild("House") then
         local house = item.House.Value
         local door = house:GetDescendants()
@@ -8,30 +8,15 @@ game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
         for i = 1, #door do
             if door[i].Name == "GivePizza" then
                 local humanoid = game.Players.LocalPlayer.Character:FindFirstChild("Humanoid")
-                local rootPart = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                
-                if humanoid and rootPart then
-                    -- Ajustar WalkSpeed a 20
-                    humanoid.WalkSpeed = 20
-
-                    -- Crear un tween para mover suavemente al jugador hacia la puerta
-                    local targetPosition = door[i].CFrame.Position
-                    local tweenInfo = TweenInfo.new(
-                        50, -- Duración del movimiento (en segundos)
-                        Enum.EasingStyle.Linear, -- Estilo de movimiento (lineal para suavidad)
-                        Enum.EasingDirection.InOut -- Dirección del tween
-                    )
-
-                    local goal = {CFrame = CFrame.new(targetPosition)}
-
-                    local tween = TweenService:Create(rootPart, tweenInfo, goal)
+                if humanoid then
+                    -- Crear un tween para ajustar la WalkSpeed a 20
+                    local tweenInfo = TweenInfo.new(30, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+                    local goal = {WalkSpeed = 20}
+                    local tween = TweenService:Create(humanoid, tweenInfo, goal)
                     tween:Play()
 
-                    -- Esperar a que el tween termine antes de continuar
-                    tween.Completed:Wait()
-
-                    -- Opcional: Restaurar la velocidad del jugador después del movimiento
-                    humanoid.WalkSpeed = 16 -- Valor predeterminado de WalkSpeed
+                    -- Mover al personaje a la puerta
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = door[i].CFrame
                 end
             end
         end
