@@ -80,7 +80,7 @@ player.Character.ChildAdded:Connect(function(item)
 
                     -- 4. Verificar si se ha seleccionado una pizza o soda
                     local tweenInfo4 = TweenInfo.new(
-                        0.8, -- Duración rápida para bajar (300 ms)
+                        1.5, -- Duración rápida para bajar (300 ms)
                         Enum.EasingStyle.Quad,
                         Enum.EasingDirection.Out
                     )
