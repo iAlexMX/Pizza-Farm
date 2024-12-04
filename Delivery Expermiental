@@ -8,7 +8,7 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local isMoving = false
 local targetYPosition = -60 -- Posición bajo el mapa
 local currentDoor = nil
-local previousItemDoor = nil
+local targetDoor = nil -- Puerta objetivo más reciente
 
 -- Desactivar asientos
 for _, seat in pairs(workspace:GetDescendants()) do
@@ -33,12 +33,12 @@ local function smoothTeleportToDoor(door)
     local belowDoorPosition = Vector3.new(door.Position.X, targetYPosition, door.Position.Z)
     local aboveDoorPosition = Vector3.new(door.Position.X, door.Position.Y + 5, door.Position.Z)
 
-    -- Bajada rápida desde la posición actual (0 segundos)
+    -- Bajada rápida desde la posición actual
     local tweenDown = TweenService:Create(humanoidRootPart, TweenInfo.new(0), {CFrame = CFrame.new(belowCurrentPosition)})
     tweenDown:Play()
     tweenDown.Completed:Wait()
 
-    -- Movimiento por debajo hacia la puerta (5 segundos)
+    -- Movimiento por debajo hacia la puerta
     local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(5), {CFrame = CFrame.new(belowDoorPosition)})
     tweenMove:Play()
     tweenMove.Completed:Wait()
@@ -48,7 +48,7 @@ local function smoothTeleportToDoor(door)
     tweenUp:Play()
     tweenUp.Completed:Wait()
 
-    -- Bajar nuevamente debajo de la puerta (0.1 segundos)
+    -- Bajar nuevamente debajo de la puerta
     local tweenDownToFinal = TweenService:Create(humanoidRootPart, TweenInfo.new(0.1), {CFrame = CFrame.new(belowDoorPosition)})
     tweenDownToFinal:Play()
     tweenDownToFinal.Completed:Wait()
@@ -56,33 +56,35 @@ local function smoothTeleportToDoor(door)
     -- Actualizar la puerta actual
     currentDoor = door
 
-    isMoving = false
+    -- Verificar si la puerta objetivo ha cambiado durante el movimiento
+    if targetDoor and targetDoor ~= door then
+        smoothTeleportToDoor(targetDoor) -- Moverse inmediatamente a la nueva puerta
+    else
+        isMoving = false
+    end
 end
 
 -- Detectar cuando se equipa una pizza/soda
 character.ChildAdded:Connect(function(item)
-    if item:FindFirstChild("House") and not isMoving then
+    if item:FindFirstChild("House") then
         local house = item.House.Value
         local doors = house:GetDescendants()
 
         for _, door in ipairs(doors) do
             if door.Name == "GivePizza" then
-                -- Verificar si es una nueva puerta
-                if currentDoor ~= door then
-                    smoothTeleportToDoor(door)
+                -- Actualizar la puerta objetivo
+                targetDoor = door
+
+                -- Si ya está en movimiento, interrumpir para priorizar la nueva puerta
+                if isMoving then
+                    isMoving = false
                 end
-                -- Actualizar la puerta previa asociada al item
-                previousItemDoor = door
+
+                -- Iniciar el movimiento hacia la nueva puerta
+                smoothTeleportToDoor(targetDoor)
                 break
             end
         end
-    end
-end)
-
--- Detectar si el jugador intenta entregar en otra puerta
-RunService.Heartbeat:Connect(function()
-    if previousItemDoor and currentDoor and previousItemDoor ~= currentDoor then
-        smoothTeleportToDoor(previousItemDoor)
     end
 end)
 
