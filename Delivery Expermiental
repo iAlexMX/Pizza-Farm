@@ -8,6 +8,7 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local isMoving = false
 local targetYPosition = -60 -- Posición bajo el mapa
 local currentDoor = nil
+local previousItemDoor = nil
 
 -- Desactivar asientos
 for _, seat in pairs(workspace:GetDescendants()) do
@@ -37,17 +38,15 @@ local function smoothTeleportToDoor(door)
     tweenDown:Play()
     tweenDown.Completed:Wait()
 
-    -- Movimiento por debajo hacia la puerta (10 segundos)
-    local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(10), {CFrame = CFrame.new(belowDoorPosition)})
+    -- Movimiento por debajo hacia la puerta (5 segundos)
+    local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(5), {CFrame = CFrame.new(belowDoorPosition)})
     tweenMove:Play()
     tweenMove.Completed:Wait()
 
-    -- Solo subir a la puerta si es una puerta nueva (no la misma que antes)
-    if currentDoor ~= door then
-        local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
-        tweenUp:Play()
-        tweenUp.Completed:Wait()
-    end
+    -- Subir a la puerta
+    local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
+    tweenUp:Play()
+    tweenUp.Completed:Wait()
 
     -- Bajar nuevamente debajo de la puerta (0.1 segundos)
     local tweenDownToFinal = TweenService:Create(humanoidRootPart, TweenInfo.new(0.1), {CFrame = CFrame.new(belowDoorPosition)})
@@ -68,11 +67,22 @@ character.ChildAdded:Connect(function(item)
 
         for _, door in ipairs(doors) do
             if door.Name == "GivePizza" then
-                -- Mover hacia la puerta, independientemente de si es nueva o no
-                smoothTeleportToDoor(door)
+                -- Verificar si es una nueva puerta
+                if currentDoor ~= door then
+                    smoothTeleportToDoor(door)
+                end
+                -- Actualizar la puerta previa asociada al item
+                previousItemDoor = door
                 break
             end
         end
+    end
+end)
+
+-- Detectar si el jugador intenta entregar en otra puerta
+RunService.Heartbeat:Connect(function()
+    if previousItemDoor and currentDoor and previousItemDoor ~= currentDoor then
+        smoothTeleportToDoor(previousItemDoor)
     end
 end)
 
