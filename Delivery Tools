@@ -6,6 +6,13 @@ local root = character:WaitForChild("HumanoidRootPart")
 local active = true -- Controla si el script está activo
 local MAX_DISTANCE = 30 -- Distancia máxima para recoger herramientas
 
+-- Función para actualizar las referencias al reiniciar
+local function UpdateCharacterReferences(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    root = character:WaitForChild("HumanoidRootPart")
+end
+
 -- Función para encontrar herramientas de delivery dentro del rango
 local function FindNearbyDeliveryTools(parent)
     local tools = {}
@@ -40,8 +47,13 @@ local function CollectTools()
     end
 end
 
+-- Evento que detecta si el jugador se reinicia
+player.CharacterAdded:Connect(function(newCharacter)
+    UpdateCharacterReferences(newCharacter) -- Actualiza las referencias
+end)
+
 -- Bucle principal para recolectar herramientas
-while active do
+while true do
     CollectTools()
     wait(0.2) -- Repite cada 0.2 segundos
 end
