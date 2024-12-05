@@ -9,6 +9,7 @@ local isMoving = false
 local targetYPosition = -60 -- Posición bajo el mapa
 local currentDoor = nil
 local targetDoor = nil -- Puerta objetivo más reciente
+local lastDoor = nil -- Última puerta visitada
 
 -- Desactivar asientos
 for _, seat in pairs(workspace:GetDescendants()) do
@@ -26,6 +27,11 @@ end)
 
 -- Función para teletransportarse suavemente
 local function smoothTeleportToDoor(door)
+    if door == lastDoor then
+        print("Ya se entregó en esta puerta. No se moverá.")
+        return
+    end
+
     isMoving = true
 
     local currentPosition = humanoidRootPart.Position
@@ -53,8 +59,8 @@ local function smoothTeleportToDoor(door)
     tweenDownToFinal:Play()
     tweenDownToFinal.Completed:Wait()
 
-    -- Actualizar la puerta actual
-    currentDoor = door
+    -- Actualizar la última puerta visitada
+    lastDoor = door
 
     -- Verificar si la puerta objetivo ha cambiado durante el movimiento
     if targetDoor and targetDoor ~= door then
