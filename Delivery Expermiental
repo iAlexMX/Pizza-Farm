@@ -9,6 +9,29 @@ local isMoving = false
 local targetYPosition = -60 -- Posición bajo el mapa
 local currentDoor = nil
 local targetDoor = nil -- Puerta objetivo más reciente
+local currentItemName = nil -- Nombre del ítem actualmente equipado
+
+-- Crear un BillboardGui para el ESP
+local function createESP(door, text)
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = door
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel")
+    label.Parent = billboard
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextScaled = true
+
+    billboard.Parent = door
+    return billboard
+end
+
+local espObject = nil
 
 -- Desactivar asientos
 for _, seat in pairs(workspace:GetDescendants()) do
@@ -25,8 +48,17 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- Función para teletransportarse suavemente
-local function smoothTeleportToDoor(door)
+local function smoothTeleportToDoor(door, itemName)
     isMoving = true
+
+    -- Destruir ESP anterior si existe
+    if espObject then
+        espObject:Destroy()
+        espObject = nil
+    end
+
+    -- Crear nuevo ESP
+    espObject = createESP(door, itemName)
 
     local currentPosition = humanoidRootPart.Position
     local belowCurrentPosition = Vector3.new(currentPosition.X, targetYPosition, currentPosition.Z)
@@ -39,7 +71,7 @@ local function smoothTeleportToDoor(door)
     tweenDown.Completed:Wait()
 
     -- Movimiento por debajo hacia la puerta
-    local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(5), {CFrame = CFrame.new(belowDoorPosition)})
+    local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(3), {CFrame = CFrame.new(belowDoorPosition)})
     tweenMove:Play()
     tweenMove.Completed:Wait()
 
@@ -58,9 +90,13 @@ local function smoothTeleportToDoor(door)
 
     -- Verificar si la puerta objetivo ha cambiado durante el movimiento
     if targetDoor and targetDoor ~= door then
-        smoothTeleportToDoor(targetDoor) -- Moverse inmediatamente a la nueva puerta
+        smoothTeleportToDoor(targetDoor, currentItemName) -- Moverse inmediatamente a la nueva puerta
     else
         isMoving = false
+        if espObject then
+            espObject:Destroy()
+            espObject = nil
+        end
     end
 end
 
@@ -75,13 +111,19 @@ character.ChildAdded:Connect(function(item)
                 -- Actualizar la puerta objetivo
                 targetDoor = door
 
-                -- Si ya está en movimiento, interrumpir para priorizar la nueva puerta
+                -- Obtener el nombre del ítem equipado
+                local itemName = item.Name or "Unknown Item"
+
+                -- Si ya está en movimiento y cambia el objetivo, destruir el ESP anterior
                 if isMoving then
                     isMoving = false
                 end
 
+                -- Almacenar el nuevo ítem
+                currentItemName = itemName
+
                 -- Iniciar el movimiento hacia la nueva puerta
-                smoothTeleportToDoor(targetDoor)
+                smoothTeleportToDoor(targetDoor, itemName)
                 break
             end
         end
@@ -90,5 +132,8 @@ end)
 
 -- Detener el script al reiniciar
 player.CharacterAdded:Connect(function()
+    if espObject then
+        espObject:Destroy()
+    end
     script:Destroy()
 end)
