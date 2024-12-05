@@ -5,11 +5,14 @@ local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local backpack = player:WaitForChild("Backpack")
 local isMoving = false
 local targetYPosition = -60 -- Posición bajo el mapa
 local currentDoor = nil
 local targetDoor = nil -- Puerta objetivo más reciente
 local lastDoor = nil -- Última puerta visitada
+
+local itemsToTrack = {"A1", "A2", "A3", "B1", "B2", "B3", "B4", "B5", "B6", "C1", "C2", "C3"}
 
 -- Desactivar asientos
 for _, seat in pairs(workspace:GetDescendants()) do
@@ -70,6 +73,48 @@ local function smoothTeleportToDoor(door)
     end
 end
 
+-- Función para contar elementos en el backpack
+local function countItems()
+    local counts = {}
+    for _, itemName in ipairs(itemsToTrack) do
+        counts[itemName] = 0
+    end
+
+    for _, item in ipairs(backpack:GetChildren()) do
+        if counts[item.Name] ~= nil then
+            counts[item.Name] += 1
+        end
+    end
+    return counts
+end
+
+-- Función para verificar si todos los elementos han sido entregados
+local function allItemsDelivered(counts)
+    for _, count in pairs(counts) do
+        if count > 0 then
+            return false
+        end
+    end
+    return true
+end
+
+-- Verificar elementos en el backpack y manejar entregas
+local function checkAndDeliverItems()
+    while true do
+        wait(1) -- Revisar cada segundo
+
+        local counts = countItems()
+        print("Estado del backpack:", counts)
+
+        if allItemsDelivered(counts) then
+            print("Todos los elementos han sido entregados. Esperando para finalizar...")
+            wait(3) -- Espera de 3 segundos antes de matar al jugador
+            humanoidRootPart.CFrame = CFrame.new(Vector3.new(0, -500, 0)) -- Matar al jugador
+            break
+        end
+    end
+end
+
 -- Detectar cuando se equipa una pizza/soda
 character.ChildAdded:Connect(function(item)
     if item:FindFirstChild("House") then
@@ -93,6 +138,9 @@ character.ChildAdded:Connect(function(item)
         end
     end
 end)
+
+-- Iniciar revisión del backpack en paralelo
+task.spawn(checkAndDeliverItems)
 
 -- Detener el script al reiniciar
 player.CharacterAdded:Connect(function()
