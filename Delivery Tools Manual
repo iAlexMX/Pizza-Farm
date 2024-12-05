@@ -1,0 +1,58 @@
+-- Variables iniciales
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+local active = true -- Controla si el script está activo
+local MAX_DISTANCE = 15 -- Distancia máxima para recoger herramientas
+
+-- Función para encontrar herramientas de delivery dentro del rango
+local function FindNearbyDeliveryTools(parent)
+    local tools = {}
+    for _, item in ipairs(parent:GetChildren()) do
+        if item:IsA("Tool") and item.Name:match("^%u%d$") and item:FindFirstChild("Handle") and item:FindFirstChild("House") then
+            if (item.Handle.Position - root.Position).Magnitude <= MAX_DISTANCE then
+                table.insert(tools, item)
+            end
+        end
+    end
+    return tools
+end
+
+-- Función para recoger herramientas
+local function CollectTools()
+    if not active then return end
+
+    local nearbyTools = FindNearbyDeliveryTools(workspace)
+    if #nearbyTools > 0 then
+        for _, tool in ipairs(nearbyTools) do
+            if tool.Parent == workspace then
+                humanoid:EquipTool(tool)
+                wait(0.1)
+            end
+        end
+
+        -- Mover herramientas al backpack
+        wait(0.3)
+        for _, tool in ipairs(FindNearbyDeliveryTools(character)) do
+            tool.Parent = player.Backpack
+        end
+    end
+end
+
+-- Función para desactivar el script
+local function DisableScript()
+    active = false
+    script:Destroy()
+end
+
+-- Evento que detecta si el jugador se reinicia
+player.CharacterAdded:Connect(function(newCharacter)
+    DisableScript() -- Desactiva el script si el jugador se reinicia
+end)
+
+-- Bucle principal para recolectar herramientas
+while active do
+    CollectTools()
+    wait(0) -- Repite cada 0 segundos
+end
