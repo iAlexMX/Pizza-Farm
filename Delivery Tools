@@ -40,19 +40,8 @@ local function CollectTools()
     end
 end
 
--- Función para desactivar el script
-local function DisableScript()
-    active = false
-    script:Destroy()
-end
-
--- Evento que detecta si el jugador se reinicia
-player.CharacterAdded:Connect(function(newCharacter)
-    DisableScript() -- Desactiva el script si el jugador se reinicia
-end)
-
 -- Bucle principal para recolectar herramientas
 while active do
     CollectTools()
-    wait(0.5) -- Repite cada 5 segundos
+    wait(0.2) -- Repite cada 0.2 segundos
 end
