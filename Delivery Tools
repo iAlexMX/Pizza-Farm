@@ -54,5 +54,5 @@ end)
 -- Bucle principal para recolectar herramientas
 while active do
     CollectTools()
-    wait(5) -- Repite cada 5 segundos
+    wait(0.5) -- Repite cada 5 segundos
 end
