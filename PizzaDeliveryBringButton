@@ -3,7 +3,7 @@ local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local root = character:WaitForChild("HumanoidRootPart")
-local active = true -- Controla si el script está activo
+local active = false -- Controla si el script está desactivado al inicio
 local MAX_DISTANCE = 30 -- Distancia máxima para recoger herramientas
 
 -- Crear la Interfaz de Usuario
@@ -14,11 +14,11 @@ ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositi
 -- Crear el botón On/Off con tamaño aún más pequeño
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 60, 0, 30) -- Tamaño más pequeño del botón
-ToggleButton.Position = UDim2.new(0.5, -30, 0.9, -15) -- Ajustar la posición para que esté centrado
-ToggleButton.Text = "On"
+ToggleButton.Position = UDim2.new(0.5, 244, 0.9, -172) -- Ajustar la posición para que esté centrado
+ToggleButton.Text = "Off" -- Inicialmente en "Off" porque el script está desactivado
 ToggleButton.Font = Enum.Font.SourceSansBold
 ToggleButton.TextSize = 14 -- Reducir el tamaño del texto
-ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Color rojo para indicar que está desactivado
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.Parent = ScreenGui
 
@@ -29,7 +29,7 @@ local startPos
 
 ToggleButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
+        dragging = false
         dragStart = input.Position
         startPos = ToggleButton.Position
     end
@@ -103,6 +103,7 @@ end)
 ToggleButton.MouseButton1Click:Connect(function()
     active = not active
     ToggleButton.Text = active and "On" or "Off" -- Cambia el texto entre On y Off
+    ToggleButton.BackgroundColor3 = active and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 0, 0) -- Cambia el color del botón
 end)
 
 -- Bucle principal para recolectar herramientas
@@ -110,4 +111,3 @@ while true do
     CollectTools()
     wait(0) -- Repite cada 0 segundos
 end
-
