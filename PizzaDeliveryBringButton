@@ -14,7 +14,7 @@ ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositi
 -- Crear el botón On/Off con tamaño aún más pequeño
 local ToggleButton = Instance.new("TextButton")
 ToggleButton.Size = UDim2.new(0, 60, 0, 30) -- Tamaño más pequeño del botón
-ToggleButton.Position = UDim2.new(0.5, 244, 0.89, -172) -- Ajustar la posición para que esté centrado
+ToggleButton.Position = UDim2.new(0.5, 244, 0.88, -172) -- Ajustar la posición para que esté centrado
 ToggleButton.Text = "Off" -- Inicialmente en "Off" porque el script está desactivado
 ToggleButton.Font = Enum.Font.SourceSansBold
 ToggleButton.TextSize = 14 -- Reducir el tamaño del texto
