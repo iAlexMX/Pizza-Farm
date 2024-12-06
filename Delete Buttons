@@ -1,0 +1,9 @@
+-- Acceder a CoreGui
+local coreGui = game:GetService("CoreGui")
+
+-- Recorre todos los elementos en CoreGui y elimina aquellos que se llamen "ScreenGui"
+for _, child in ipairs(coreGui:GetChildren()) do
+    if child.Name == "ScreenGui" then
+        child:Destroy() -- Eliminar el ScreenGui
+    end
+end
