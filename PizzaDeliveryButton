@@ -1,0 +1,210 @@
+-- Variables iniciales
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+local backpack = player:WaitForChild("Backpack")
+
+-- Función de ejecución del script (lo que quieres ejecutar)
+local function executeScript()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+
+    local player = Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    local backpack = player:WaitForChild("Backpack")
+    local isMoving = false
+    local targetYPosition = -60 -- Posición bajo el mapa
+    local currentDoor = nil
+    local targetDoor = nil -- Puerta objetivo más reciente
+    local lastDoor = nil -- Última puerta visitada
+
+    local itemsToTrack = {"A1", "A2", "A3", "B1", "B2", "B3", "B4", "B5", "B6", "C1", "C2", "C3"}
+
+    -- Desactivar asientos
+    for _, seat in pairs(workspace:GetDescendants()) do
+        if seat:IsA("Seat") or seat:IsA("VehicleSeat") then
+            seat.Disabled = true
+        end
+    end
+
+    -- Evitar muerte por caída
+    RunService.Heartbeat:Connect(function()
+        if humanoidRootPart.Position.Y < -50 then
+            humanoidRootPart.Velocity = Vector3.zero
+        end
+    end)
+
+    -- Función para teletransportarse suavemente
+    local function smoothTeleportToDoor(door)
+        if door == lastDoor then
+            print("Ya se entregó en esta puerta. No se moverá.")
+            return
+        end
+
+        isMoving = true
+
+        local currentPosition = humanoidRootPart.Position
+        local belowCurrentPosition = Vector3.new(currentPosition.X, targetYPosition, currentPosition.Z)
+        local belowDoorPosition = Vector3.new(door.Position.X, targetYPosition, door.Position.Z)
+        local aboveDoorPosition = Vector3.new(door.Position.X, door.Position.Y + 5, door.Position.Z)
+
+        -- Bajada rápida desde la posición actual
+        local tweenDown = TweenService:Create(humanoidRootPart, TweenInfo.new(0), {CFrame = CFrame.new(belowCurrentPosition)})
+        tweenDown:Play()
+        tweenDown.Completed:Wait()
+
+        -- Movimiento por debajo hacia la puerta
+        local tweenMove = TweenService:Create(humanoidRootPart, TweenInfo.new(2), {CFrame = CFrame.new(belowDoorPosition)})
+        tweenMove:Play()
+        tweenMove.Completed:Wait()
+
+        -- Subir a la puerta
+        local tweenUp = TweenService:Create(humanoidRootPart, TweenInfo.new(0.2), {CFrame = CFrame.new(aboveDoorPosition)})
+        tweenUp:Play()
+        tweenUp.Completed:Wait()
+
+        -- Bajar nuevamente debajo de la puerta
+        local tweenDownToFinal = TweenService:Create(humanoidRootPart, TweenInfo.new(0.1), {CFrame = CFrame.new(belowDoorPosition)})
+        tweenDownToFinal:Play()
+        tweenDownToFinal.Completed:Wait()
+
+        -- Actualizar la última puerta visitada
+        lastDoor = door
+
+        -- Verificar si la puerta objetivo ha cambiado durante el movimiento
+        if targetDoor and targetDoor ~= door then
+            smoothTeleportToDoor(targetDoor) -- Moverse inmediatamente a la nueva puerta
+        else
+            isMoving = false
+        end
+    end
+
+    -- Función para contar elementos en el backpack
+    local function countItems()
+        local counts = {}
+        for _, itemName in ipairs(itemsToTrack) do
+            counts[itemName] = 0
+        end
+
+        for _, item in ipairs(backpack:GetChildren()) do
+            if counts[item.Name] ~= nil then
+                counts[item.Name] += 1
+            end
+        end
+        return counts
+    end
+
+    -- Función para verificar si todos los elementos han sido entregados
+    local function allItemsDelivered(counts)
+        for _, count in pairs(counts) do
+            if count > 0 then
+                return false
+            end
+        end
+        return true
+    end
+
+    -- Verificar elementos en el backpack y manejar entregas
+    local function checkAndDeliverItems()
+        while true do
+            wait(1) -- Revisar cada segundo
+
+            local counts = countItems()
+            print("Estado del backpack:", counts)
+
+            if allItemsDelivered(counts) then
+                print("Todos los elementos han sido entregados. Esperando para finalizar...")
+                wait(3) -- Espera de 3 segundos antes de matar al jugador
+                humanoidRootPart.CFrame = CFrame.new(Vector3.new(0, -500, 0)) -- Matar al jugador
+                break
+            end
+        end
+    end
+
+    -- Detectar cuando se equipa una pizza/soda
+    character.ChildAdded:Connect(function(item)
+        if item:FindFirstChild("House") then
+            local house = item.House.Value
+            local doors = house:GetDescendants()
+
+            for _, door in ipairs(doors) do
+                if door.Name == "GivePizza" then
+                    -- Actualizar la puerta objetivo
+                    targetDoor = door
+
+                    -- Si ya está en movimiento, interrumpir para priorizar la nueva puerta
+                    if isMoving then
+                        isMoving = false
+                    end
+
+                    -- Iniciar el movimiento hacia la nueva puerta
+                    smoothTeleportToDoor(targetDoor)
+                    break
+                end
+            end
+        end
+    end)
+
+    -- Iniciar revisión del backpack en paralelo
+    task.spawn(checkAndDeliverItems)
+
+    -- Detener el script al reiniciar
+    player.CharacterAdded:Connect(function()
+        script:Destroy()
+    end)
+end
+
+-- Crear la Interfaz de Usuario
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false -- Mantener la interfaz en pantalla si el jugador respawnea
+ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositivos
+
+-- Crear el botón de ejecución
+local ExecuteButton = Instance.new("TextButton")
+ExecuteButton.Size = UDim2.new(0, 100, 0, 30) -- Tamaño pequeño del botón
+ExecuteButton.Position = UDim2.new(0.5, -50, 0.5, -15) -- Centrar el botón en la pantalla
+ExecuteButton.Text = "Ejecutar"
+ExecuteButton.Font = Enum.Font.SourceSansBold
+ExecuteButton.TextSize = 14 -- Tamaño del texto
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Color verde
+ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ExecuteButton.Parent = ScreenGui
+
+-- Hacer que el botón sea arrastrable
+local dragging = false
+local dragStart
+local startPos
+
+ExecuteButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = ExecuteButton.Position
+    end
+end)
+
+ExecuteButton.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local delta = input.Position - dragStart
+        ExecuteButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+ExecuteButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Ejecutar el script al hacer clic en el botón
+ExecuteButton.MouseButton1Click:Connect(function()
+    -- Ejecutar el código que deseas cuando el botón sea presionado
+    executeScript()
+end)
