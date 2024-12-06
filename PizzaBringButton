@@ -11,13 +11,13 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.ResetOnSpawn = false -- Mantener la interfaz en pantalla si el jugador respawnea
 ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositivos
 
--- Crear el botón On/Off con mayor tamaño y funcionalidades
+-- Crear el botón On/Off con tamaño más pequeño
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 200, 0, 100) -- Tamaño más grande del botón
-ToggleButton.Position = UDim2.new(0.5, -100, 0.9, -50)
+ToggleButton.Size = UDim2.new(0, 100, 0, 50) -- Tamaño más pequeño del botón
+ToggleButton.Position = UDim2.new(0.5, -50, 0.9, -25) -- Ajustar la posición también si es necesario
 ToggleButton.Text = "On"
 ToggleButton.Font = Enum.Font.SourceSansBold
-ToggleButton.TextSize = 30
+ToggleButton.TextSize = 20 -- Ajustar tamaño de texto para que sea proporcional
 ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.Parent = ScreenGui
