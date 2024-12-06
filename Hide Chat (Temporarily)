@@ -1,0 +1,28 @@
+-- Referencias a los objetos
+local player = game:GetService("Players").LocalPlayer
+local playerGui = player.PlayerGui
+local mainGui = playerGui:WaitForChild("MainGui")
+local menu = mainGui:WaitForChild("Menu")
+
+local chatWindow = menu:WaitForChild("ChatWindow")
+local expandButton = menu:WaitForChild("ExpandButton")
+
+-- Función para ocultar los elementos
+local function hideElements()
+    chatWindow.Visible = false
+    expandButton.Visible = false
+end
+
+-- Función para mostrar los elementos
+local function showElements()
+    chatWindow.Visible = true
+    expandButton.Visible = true
+end
+
+-- Llamar a la función hideElements cuando el script se ejecute
+hideElements()
+
+-- Detectar cuando el personaje se reinicia y mostrar los elementos nuevamente
+player.CharacterAdded:Connect(function()
+    showElements()  -- Mostrar los elementos cuando el personaje se reinicie
+end)
