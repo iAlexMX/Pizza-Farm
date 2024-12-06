@@ -1,0 +1,113 @@
+-- Variables iniciales
+local player = game:GetService("Players").LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local root = character:WaitForChild("HumanoidRootPart")
+local active = true -- Controla si el script está activo
+local MAX_DISTANCE = 30 -- Distancia máxima para recoger herramientas
+
+-- Crear la Interfaz de Usuario
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.ResetOnSpawn = false -- Mantener la interfaz en pantalla si el jugador respawnea
+ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositivos
+
+-- Crear el botón On/Off con mayor tamaño y funcionalidades
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0, 200, 0, 100) -- Tamaño más grande del botón
+ToggleButton.Position = UDim2.new(0.5, -100, 0.9, -50)
+ToggleButton.Text = "On"
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextSize = 30
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.Parent = ScreenGui
+
+-- Hacer que el botón sea arrastrable
+local dragging = false
+local dragStart
+local startPos
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local delta = input.Position - dragStart
+        ToggleButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+ToggleButton.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Función para actualizar las referencias al reiniciar
+local function UpdateCharacterReferences(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    root = character:WaitForChild("HumanoidRootPart")
+end
+
+-- Función para encontrar herramientas de delivery dentro del rango
+local function FindNearbyDeliveryTools(parent)
+    local tools = {}
+    for _, item in ipairs(parent:GetChildren()) do
+        if item:IsA("Tool") and item.Name:match("^%u%d$") and item:FindFirstChild("Handle") and item:FindFirstChild("House") then
+            if (item.Handle.Position - root.Position).Magnitude <= MAX_DISTANCE then
+                table.insert(tools, item)
+            end
+        end
+    end
+    return tools
+end
+
+-- Función para recoger herramientas
+local function CollectTools()
+    if not active then return end
+
+    local nearbyTools = FindNearbyDeliveryTools(workspace)
+    if #nearbyTools > 0 then
+        for _, tool in ipairs(nearbyTools) do
+            if tool.Parent == workspace then
+                humanoid:EquipTool(tool)
+                wait(0.1)
+            end
+        end
+
+        -- Mover herramientas al backpack
+        wait(0.3)
+        for _, tool in ipairs(FindNearbyDeliveryTools(character)) do
+            tool.Parent = player.Backpack
+        end
+    end
+end
+
+-- Evento que detecta si el jugador se reinicia
+player.CharacterAdded:Connect(function(newCharacter)
+    UpdateCharacterReferences(newCharacter) -- Actualiza las referencias
+end)
+
+-- Función para alternar el estado del script
+ToggleButton.MouseButton1Click:Connect(function()
+    active = not active
+    ToggleButton.Text = active and "On" or "Off" -- Cambia el texto entre On y Off
+end)
+
+-- Bucle principal para recolectar herramientas
+while true do
+    CollectTools()
+    wait(0) -- Repite cada 0 segundos
+end
+
