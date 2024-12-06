@@ -1,9 +1,13 @@
--- Acceder a CoreGui
-local coreGui = game:GetService("CoreGui")
+-- Eliminar el primer ScreenGui
+for _, gui in pairs(game.CoreGui:GetChildren()) do
+    if gui:IsA("ScreenGui") and gui.Name == "ScreenGui" then
+        gui:Destroy()  -- Elimina el ScreenGui
+    end
+end
 
--- Recorre todos los elementos en CoreGui y elimina aquellos que se llamen "ScreenGui"
-for _, child in ipairs(coreGui:GetChildren()) do
-    if child.Name == "ScreenGui" then
-        child:Destroy() -- Eliminar el ScreenGui
+-- Eliminar el segundo ScreenGui
+for _, gui in pairs(game.CoreGui:GetChildren()) do
+    if gui:IsA("ScreenGui") and gui.Name == "ScreenGui" then
+        gui:Destroy()  -- Elimina el ScreenGui
     end
 end
