@@ -1,28 +1,21 @@
--- Referencias a los objetos
+-- Variables para los objetos a ocultar o mostrar
 local player = game:GetService("Players").LocalPlayer
-local playerGui = player.PlayerGui
-local mainGui = playerGui:WaitForChild("MainGui")
-local menu = mainGui:WaitForChild("Menu")
+local chatWindow = player.PlayerGui.MainGui.Menu.ChatWindow
+local expandButton = player.PlayerGui.MainGui.Menu.ExpandButton
 
-local chatWindow = menu:WaitForChild("ChatWindow")
-local expandButton = menu:WaitForChild("ExpandButton")
-
--- Función para ocultar los elementos
-local function hideElements()
+-- Creamos una variable booleana para saber si ya se ejecutó el script
+if not _G.scriptExecuted then
+    -- Si el script nunca se ha ejecutado, lo ocultamos
     chatWindow.Visible = false
     expandButton.Visible = false
-end
-
--- Función para mostrar los elementos
-local function showElements()
+    
+    -- Marcamos que el script ya se ejecutó
+    _G.scriptExecuted = true
+else
+    -- Si el script ya se ejecutó, lo mostramos
     chatWindow.Visible = true
     expandButton.Visible = true
+
+    -- Desmarcamos para que vuelva a quedar en su estado original la próxima vez
+    _G.scriptExecuted = false
 end
-
--- Llamar a la función hideElements cuando el script se ejecute
-hideElements()
-
--- Detectar cuando el personaje se reinicia y mostrar los elementos nuevamente
-player.CharacterAdded:Connect(function()
-    showElements()  -- Mostrar los elementos cuando el personaje se reinicie
-end)
