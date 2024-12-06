@@ -164,7 +164,7 @@ ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositi
 -- Crear el botón de ejecución
 local ExecuteButton = Instance.new("TextButton")
 ExecuteButton.Size = UDim2.new(0, 100, 0, 30) -- Tamaño pequeño del botón
-ExecuteButton.Position = UDim2.new(0.5, -50, 0.5, -15) -- Centrar el botón en la pantalla
+ExecuteButton.Position = UDim2.new(0, 734, 0, 143) -- Centrar el botón en la pantalla
 ExecuteButton.Text = "Ejecutar"
 ExecuteButton.Font = Enum.Font.SourceSansBold
 ExecuteButton.TextSize = 14 -- Tamaño del texto
@@ -179,7 +179,7 @@ local startPos
 
 ExecuteButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
+        dragging = false
         dragStart = input.Position
         startPos = ExecuteButton.Position
     end
