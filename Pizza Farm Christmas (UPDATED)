@@ -371,7 +371,7 @@ local function FindBoxingFoods()
 		if not f.Anchored then
 			if p==nil and f.Name=="Pizza" then
 				p=f
-			elseif d==nil and f.Name=="MountainDew" then
+			elseif d==nil and f.Name=="Dew" then
 				d=f
 			end
 			if p and d then
