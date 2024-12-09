@@ -92,9 +92,10 @@ local function executeScript()
             local counts = countItems()
             print("Estado del backpack:", counts)
 
+            -- Si todos los elementos han sido entregados
             if allItemsDelivered(counts) then
                 print("Todos los elementos han sido entregados. Esperando para finalizar...")
-                
+
                 -- Determinar el tiempo de espera antes de la muerte
                 local waitTime = 3
                 if lastDoor then
@@ -133,6 +134,22 @@ local function executeScript()
         end
     end)
 
+    -- Función para bajar a Y=-60 dependiendo de la cantidad de pizzas/sodas en el inventario
+    local function handleYPositionAfterDelivery()
+        local counts = countItems()
+        local pizzaCount = counts["Pizza"] or 0
+        local sodaCount = counts["Soda"] or 0
+        local totalItems = pizzaCount + sodaCount
+
+        -- Si solo queda un artículo, esperar 0.3 segundos antes de bajar
+        if totalItems == 1 then
+            wait(0.3)
+        end
+
+        -- Bajar a Y = -60 sin suavizado
+        humanoidRootPart.CFrame = CFrame.new(humanoidRootPart.Position.X, targetYPosition, humanoidRootPart.Position.Z)
+    end
+
     -- Verificación de la llegada a la puerta y movimiento hacia abajo
     game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
         if item:findFirstChild("House") then
@@ -154,7 +171,7 @@ local function executeScript()
                     wait(0.2)
                     
                     -- Bajar a Y = -60 sin suavizado
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(door[i].Position.X, -60, door[i].Position.Z)
+                    handleYPositionAfterDelivery() -- Llamar a la función que gestiona la bajada
                     -- Actualizar la última puerta visitada
                     lastDoor = door[i]
                     break
