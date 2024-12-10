@@ -38,7 +38,7 @@ local function executeScript()
 
         isMoving = true
 
-        humanoidRootPart.CFrame = CFrame.new(door.Position.X, door.Position.Y + 2, door.Position.Z)
+        humanoidRootPart.CFrame = CFrame.new(door.Position.X, door.Position.Y, door.Position.Z)
 
         wait(0.3)
 
@@ -123,7 +123,7 @@ local function executeScript()
                         break
                     end
                     
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(door[i].Position.X, door[i].Position.Y + 2, door[i].Position.Z)
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(door[i].Position.X, door[i].Position.Y, door[i].Position.Z)
                     
                     wait(0.3)
                     
