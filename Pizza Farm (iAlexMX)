@@ -863,7 +863,7 @@ end
 							smoothTP(giver.CFrame+Vector3.new(0,7,0))
 						end
 						pcall(function() tool.Parent = character end)
-						wait(1.2)
+						wait(1.3)
 						local t = FindAllDeliveryTools(character)
 						if #t > 0 then
     wait(0.7)
