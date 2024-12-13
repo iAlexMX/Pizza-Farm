@@ -648,7 +648,7 @@ local function tryCook()
         if oven == nil or oven.IsOpen.Value then
             cookPtick = tick()
             didsomething = true
-            network:FireServer("UpdateProperty", cookP, "CFrame", CFrame.new(RNG:NextNumber(56, 57), 4.1, 38))
+            network:FireServer("UpdateProperty", cookP, "CFrame", CFrame.new(52.8000603, 3.78, 38.0500107, -1, 0, 0, 0, 1, 0, 0, 0, -1))
         end
     end
     if order then
@@ -686,7 +686,7 @@ local function tryCook()
                     -- make
                     didsomething = true
                     network:FireServer("AddIngredientToPizza", raw, "TomatoSauce")
-                    wait(0.1)
+                    wait()
                     network:FireServer("AddIngredientToPizza", raw, "Cheese")
                     wait(0.2)
                     network:FireServer("AddIngredientToPizza", raw, topping)
@@ -732,7 +732,7 @@ local function tryCook()
         didsomething = true
         network:FireServer("UpdateProperty", trash, "CFrame", CFrame.new(47.90, 7.00, 72.49, 1, 0, -0, 0, 0, 1, 0, -1, 0))
     end
-    if didsomething then wait(0.9) else break end
+    if didsomething then wait(1) else break end
 else
     break
 end
@@ -769,25 +769,22 @@ end
         boxDtick = tick()
         didSomething = true
         
-        network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63, 4.9, -1, -1, 0, 0, 0, 1, 0, 0, 0, -1))
+        network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(62.7999992, 3.80000019, 2.70000076, 0, 0, 1, 0, 1, 0, -1, 0, 0))
     end
 
     if fullBox then
         if fullBox.Name == "BoxOpen" then
             didSomething = true
-            
             network:FireServer("CloseBox", fullBox)
         elseif tick() - boxPtick > 0.8 then
             didSomething = true
-            
-            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.2, 4.4, RNG:NextNumber(-3, -2), -1, 0, 0, 0, 1, 0, 0, 0, -1))
+            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.1999741, 5, 4.90000153, 0, 0, 1, 0, 1, 0, -1, 0, 0))
             boxPtick = tick()
         end
     end
 
     if closedBox and not openBox then
         didSomething = true
-        
         network:FireServer("UpdateProperty", closedBox, "CFrame", CFrame.new(RNG:NextNumber(62.5, 70.5), 3.5, RNG:NextNumber(11, 25)))
         wait()
         network:FireServer("OpenBox", closedBox)
@@ -795,17 +792,43 @@ end
 
     if openBox and boxP then
         didSomething = true
-        
         network:FireServer("UpdateProperty", boxP, "Anchored", true)
         network:FireServer("UpdateProperty", openBox, "Anchored", true)
         wait()
         network:FireServer("UpdateProperty", boxP, "CFrame", openBox.CFrame + Vector3.new(0, -2, 0))
-        wait(0.3)
+        wait()
         network:FireServer("AssignPizzaToBox", openBox, boxP)
     end
 
+    if openBox and boxP then
+        local touched = false
+
+        local player = game:GetService("Players").LocalPlayer
+        local pizzaSlicer = player.Backpack:FindFirstChild("Pizza Slicer")
+        if pizzaSlicer then
+        else
+            pizzaSlicer = player.Character:FindFirstChild("Pizza Slicer")
+            if pizzaSlicer then
+            end
+        end
+
+        if pizzaSlicer then
+            pizzaSlicer.Activated:Connect(function()
+                touched = true
+            end)
+        end
+
+        repeat
+            wait(0.1)
+        until touched
+
+        network:FireServer("CloseBox", openBox)
+        wait()
+        network:FireServer("UpdateProperty", openBox, "CFrame", CFrame.new(RNG:NextNumber(62.5, 70.5), 3.5, RNG:NextNumber(11, 25)))
+    end
+
     if didSomething then
-        wait(0.5)
+        wait()
     else
         break
     end
