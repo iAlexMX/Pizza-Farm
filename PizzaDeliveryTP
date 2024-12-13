@@ -31,6 +31,11 @@ local function executeScript()
         end
     end)
 
+    local function smoothTP(cframe)
+        humanoidRootPart.CFrame = cframe
+        wait(0.2)
+    end
+
     local function teleportToDoor(door)
         if door == lastDoor then
             return
@@ -38,11 +43,13 @@ local function executeScript()
 
         isMoving = true
 
-        humanoidRootPart.CFrame = CFrame.new(door.Position.X, door.Position.Y, door.Position.Z)
+        local giver = door
+        local ogp = giver.Position
+        smoothTP(giver.CFrame + Vector3.new(0, 7, 0))
 
-        wait(0.3)
+        wait(0.2)
 
-        humanoidRootPart.CFrame = CFrame.new(door.Position.X, targetYPosition, door.Position.Z)
+        humanoidRootPart.CFrame = CFrame.new(ogp.X, targetYPosition, ogp.Z)
 
         lastDoor = door
 
@@ -112,29 +119,6 @@ local function executeScript()
         end
     end)
 
-    game.Players.LocalPlayer.Character.ChildAdded:Connect(function(item)
-        if item:findFirstChild("House") then
-            local house = item.House.Value
-            local door = house:GetDescendants()
-
-            for i = 1, #door do
-                if door[i].Name == "GivePizza" then
-                    if lastDoor == door[i] then
-                        break
-                    end
-                    
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(door[i].Position.X, door[i].Position.Y, door[i].Position.Z)
-                    
-                    wait(0.3)
-                    
-                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(door[i].Position.X, -60, door[i].Position.Z)
-                    lastDoor = door[i]
-                    break
-                end
-            end
-        end
-    end)
-
     task.spawn(checkAndDeliverItems)
 
     player.CharacterAdded:Connect(function()
@@ -147,24 +131,25 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
 
 local ExecuteButton = Instance.new("TextButton")
-ExecuteButton.Size = UDim2.new(0, 100, 0, 30)
-ExecuteButton.Position = UDim2.new(0, 734, 0, 143)
+ExecuteButton.Size = UDim2.new(0, 30, 0, 30)
+ExecuteButton.Position = UDim2.new(0, 800, 0, 141)
 ExecuteButton.Text = "Ejecutar"
 ExecuteButton.Font = Enum.Font.SourceSansBold
-ExecuteButton.TextSize = 14
+ExecuteButton.TextSize = 10
 ExecuteButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 ExecuteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ExecuteButton.Parent = ScreenGui
 
 local DeleteButton = Instance.new("TextButton")
-DeleteButton.Size = UDim2.new(0, 100, 0, 30)
-DeleteButton.Position = UDim2.new(0, 734, 0, 200)
+DeleteButton.Size = UDim2.new(0, 30, 0, 30)
+DeleteButton.Position = UDim2.new(0, 800, 0, 178)
 DeleteButton.Text = "Eliminar"
 DeleteButton.Font = Enum.Font.SourceSansBold
-DeleteButton.TextSize = 14
+DeleteButton.TextSize = 10
 DeleteButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 DeleteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 DeleteButton.Parent = ScreenGui
+
 local dragging = false
 local dragStart
 local startPos
