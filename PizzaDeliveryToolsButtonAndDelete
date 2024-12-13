@@ -1,39 +1,34 @@
--- Variables iniciales
 local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local root = character:WaitForChild("HumanoidRootPart")
-local active = false -- Controla si el script está desactivado al inicio
-local MAX_DISTANCE = 30 -- Distancia máxima para recoger herramientas
+local active = false
+local MAX_DISTANCE = 30
 
--- Crear la Interfaz de Usuario
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.ResetOnSpawn = false -- Mantener la interfaz en pantalla si el jugador respawnea
-ScreenGui.Parent = game.CoreGui -- Asegura que se muestra en todos los dispositivos
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
 
--- Crear el botón On/Off con tamaño aún más pequeño
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(0, 60, 0, 30) -- Tamaño más pequeño del botón
-ToggleButton.Position = UDim2.new(0.5, 244, 0.9, -174) -- Ajustar la posición para que esté centrado
-ToggleButton.Text = "Off" -- Inicialmente en "Off" porque el script está desactivado
+ToggleButton.Size = UDim2.new(0, 30, 0, 30)
+ToggleButton.Position = UDim2.new(0, 760, 0, 141)
+ToggleButton.Text = "Off"
 ToggleButton.Font = Enum.Font.SourceSansBold
-ToggleButton.TextSize = 14 -- Reducir el tamaño del texto
-ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Color rojo para indicar que está desactivado
+ToggleButton.TextSize = 10
+ToggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleButton.Parent = ScreenGui
 
--- Crear el botón de eliminar
 local DeleteButton = Instance.new("TextButton")
-DeleteButton.Size = UDim2.new(0, 60, 0, 30) -- Tamaño pequeño del botón
-DeleteButton.Position = UDim2.new(0.5, 244, 0.9, -130) -- Ubicación debajo del botón de alternar
+DeleteButton.Size = UDim2.new(0, 30, 0, 30)
+DeleteButton.Position = UDim2.new(0, 760, 0, 178)
 DeleteButton.Text = "Eliminar"
 DeleteButton.Font = Enum.Font.SourceSansBold
-DeleteButton.TextSize = 14 -- Tamaño del texto
-DeleteButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Color rojo
+DeleteButton.TextSize = 8
+DeleteButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 DeleteButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 DeleteButton.Parent = ScreenGui
 
--- Hacer que el botón sea arrastrable
 local dragging = false
 local dragStart
 local startPos
@@ -64,14 +59,12 @@ ToggleButton.InputEnded:Connect(function(input)
     end
 end)
 
--- Función para actualizar las referencias al reiniciar
 local function UpdateCharacterReferences(newCharacter)
     character = newCharacter
     humanoid = character:WaitForChild("Humanoid")
     root = character:WaitForChild("HumanoidRootPart")
 end
 
--- Función para encontrar herramientas de delivery dentro del rango
 local function FindNearbyDeliveryTools(parent)
     local tools = {}
     for _, item in ipairs(parent:GetChildren()) do
@@ -84,7 +77,6 @@ local function FindNearbyDeliveryTools(parent)
     return tools
 end
 
--- Función para recoger herramientas
 local function CollectTools()
     if not active then return end
 
@@ -97,7 +89,6 @@ local function CollectTools()
             end
         end
 
-        -- Mover herramientas al backpack
         wait(0.3)
         for _, tool in ipairs(FindNearbyDeliveryTools(character)) do
             tool.Parent = player.Backpack
@@ -105,28 +96,23 @@ local function CollectTools()
     end
 end
 
--- Evento que detecta si el jugador se reinicia
 player.CharacterAdded:Connect(function(newCharacter)
-    UpdateCharacterReferences(newCharacter) -- Actualiza las referencias
+    UpdateCharacterReferences(newCharacter)
 end)
 
--- Función para alternar el estado del script
 ToggleButton.MouseButton1Click:Connect(function()
     active = not active
-    ToggleButton.Text = active and "On" or "Off" -- Cambia el texto entre On y Off
-    ToggleButton.BackgroundColor3 = active and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 0, 0) -- Cambia el color del botón
+    ToggleButton.Text = active and "On" or "Off"
+    ToggleButton.BackgroundColor3 = active and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 0, 0)
 end)
 
--- Evento para eliminar los botones
 DeleteButton.MouseButton1Click:Connect(function()
-    ToggleButton:Destroy()  -- Eliminar el botón de alternar
-    DeleteButton:Destroy()  -- Eliminar el botón de eliminar
-    -- Detener el script después de la eliminación de los botones
+    ToggleButton:Destroy()
+    DeleteButton:Destroy()
     game:GetService("RunService").Heartbeat:Disconnect() 
 end)
 
--- Bucle principal para recolectar herramientas
 while true do
     CollectTools()
-    wait(0) -- Repite cada 0 segundos
+    wait(0)
 end
