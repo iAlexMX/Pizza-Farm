@@ -920,9 +920,9 @@ end
                 end
             end
             if totalTools > 1 then
-                wait(3)
+                wait(4)
             else
-                wait(2)
+                wait(3)
             end
         end
         delTick = tick()
