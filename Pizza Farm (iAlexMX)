@@ -450,8 +450,8 @@ local function FindBoxingFoods()
 	return p,d
 end
 
-local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["2512571151"]="MountainDew",["2512441325"]="MountainDew"}
-local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,MountainDew=0}
+local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["11874352009"]="Dew"}
+local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,Dew=0}
 local cookPtick=0
 local cookDtick=0
 local cookWarned=false
@@ -467,7 +467,7 @@ local function getOrders()
 			if tempCookingDict[o]>0 then
 				--ignores oven pizzas, so new orders are priority
 				tempCookingDict[o]=tempCookingDict[o]-1
-			elseif (o=="MountainDew" and #workspace.AllMountainDew:GetChildren()>0) or (supplyCounts[o]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0) then
+			elseif (o=="Dew" and #workspace.AllMountainDew:GetChildren()>0) or (supplyCounts[o]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0) then
 				--need supplies
 				orders[#orders+1]=o
 			end
@@ -475,7 +475,7 @@ local function getOrders()
 	end
 	return orders
 end
-local function FindFirstMountainDew()
+local function FindFirstDew()
 	local children = workspace.AllMountainDew:GetChildren()
 	for i=1,#children do
 		local d = children[i]
@@ -484,7 +484,7 @@ local function FindFirstMountainDew()
 		end
 	end
 end
-local function FindBadMountainDew()
+local function FindBadDew()
 	local children = workspace.AllMountainDew:GetChildren()
 	for i=1,#children do
 		local d = children[i]
@@ -586,7 +586,7 @@ local function smoothTP2(cf)
 	local diff = cf.p - root.Position
 	local oldg = workspace.Gravity
 	workspace.Gravity = 0
-	for i=0,diff.Magnitude,2 do
+	for i=0,diff.Magnitude,30 do
 		root.CFrame = cf0 + diff.Unit * i
 		root.Velocity,root.RotVelocity=Vector3.new(),Vector3.new()
 		wait()
@@ -621,8 +621,8 @@ local function tryCook()
 		local order = getOrders()[1]
 		local topping
 		if order=="Pepperoni" or order=="Sausage" then topping=order end
-		local cookD = FindFirstMountainDew()
-		local badD = FindBadMountainDew()
+		local cookD = FindFirstDew()
+		local badD = FindBadDew()
 		local raw,cookP,trash
 		if topping then
 			--pepperoni order avoids sausage dough and vice verca
@@ -652,12 +652,12 @@ local function tryCook()
         end
     end
     if order then
-        if order == "MountainDew" and cookD and tick() - cookDtick > 0.8 then
-            -- move MountainDew if ordered
+        if order == "Dew" and cookD and tick() - cookDtick > 0.8 then
+            -- move dew if ordered
             cookDtick = tick()
             didsomething = true
             network:FireServer("UpdateProperty", cookD, "CFrame", CFrame.new(53, 4.68, 36.5))
-        elseif order ~= "MountainDew" and raw and raw.Parent and supplyCounts[order] > 0 and supplyCounts.TomatoSauce > 0 and supplyCounts.Cheese > 0 then
+        elseif order ~= "Dew" and raw and raw.Parent and supplyCounts[order] > 0 and supplyCounts.TomatoSauce > 0 and supplyCounts.Cheese > 0 then
             -- make pizza
             if raw.Mesh.Scale.Y > 1.5 then
                 didsomething = true
@@ -838,83 +838,96 @@ end
 	end
 	if doDelivery then
     local wstools = FindAllDeliveryTools(workspace)
-    if #wstools > 1 or (wstools[1] and ffc(wstools[1].Handle,"X10")) then
-        --get tools
+    if #wstools > 1 or (wstools[1] and ffc(wstools[1].Handle, "X10")) then
+        -- Obtener herramientas
         if (root.Position - Vector3.new(54.45, 4.02, -15)).magnitude > 9 then
-            root.CFrame = CFrame.new(54.45, 4.02, -15)
+            smoothTP(CFrame.new(54.45, 4.02, -15))
             wait(0.1)
         end
-			for i=1,#wstools do
-				if wstools[i].Parent == workspace then
-					humanoid:EquipTool(wstools[i])
-					wait()
-				end
-			end
-			wait(0.3)
-			local t = FindAllDeliveryTools(character)
-    		for i=1,#t do
-    			t[i].Parent = player.Backpack
-    		end
-    		wait(0.1)
-    		if ffc(character,"RightHand") and ffc(character.RightHand,"RightGrip") then
-    			character.RightHand.RightGrip:Destroy()
-    		end
-		end
-		local bptools = FindAllDeliveryTools(player.Backpack)
-		if #bptools >= settings.deliver_at and #bptools > 0 and tick()-delTick > 30 then
-			--deliver to houses
-			table.sort(bptools,function(a,b)
-				a,b=tostring(a),tostring(b)
-				if (a:sub(1,1)=="B" and b:sub(1,1)=="B") then
-					return a < b
-				end
-				return a > b
-			end)
-			local fatass=false
-			for i=1,#bptools do
-				if not doDelivery then
-					break
-				end
-				local tool = bptools[i]
-				local giver = getHousePart(tool.Name)
-				local ogp = giver.Position
-				if giver then
-					if (giver.Position-root.Position).Magnitude > 9 then
-						smoothTP(giver.CFrame+Vector3.new(0,7,0))
-						if giver.Parent==nil or (giver.Position-ogp).Magnitude>1 then
-							giver = getHousePart(tool.Name) or giver
-							smoothTP(giver.CFrame+Vector3.new(0,7,0))
-						end
-						pcall(function() tool.Parent = character end)
-						wait(1.3)
-						local t = FindAllDeliveryTools(character)
-						if #t > 0 then
-    wait(0.7)
-else
-    wait(0.2)
+        for i = 1, #wstools do
+            if wstools[i].Parent == workspace then
+                humanoid:EquipTool(wstools[i])
+                wait()
+            end
+        end
+        wait(0.3)
+        local t = FindAllDeliveryTools(character)
+        for i = 1, #t do
+            t[i].Parent = player.Backpack
+        end
+        wait(0.1)
+        if ffc(character, "RightHand") and ffc(character.RightHand, "RightGrip") then
+            character.RightHand.RightGrip:Destroy()
+        end
+    end
+
+    local bptools = FindAllDeliveryTools(player.Backpack)
+    if #bptools >= settings.deliver_at and #bptools > 0 and tick() - delTick > 30 then
+        local houseGroups = {}
+        for i = 1, #bptools do
+            local houseName = bptools[i].Name
+            if not houseGroups[houseName] then
+                houseGroups[houseName] = {}
+            end
+            table.insert(houseGroups[houseName], bptools[i])
+        end
+        local fatass = false
+        for houseName, tools in pairs(houseGroups) do
+            local houseDelivered = 0
+            local totalTools = #tools
+            while houseDelivered < totalTools do
+                for i = 1, totalTools do
+                    if not doDelivery then
+                        break
+                    end
+                    humanoid.Sit = false
+                    local tool = tools[i]
+                    local giver = getHousePart(tool.Name)
+                    local ogp = giver.Position
+
+                    if giver then
+                        if (giver.Position - root.Position).Magnitude > 9 then
+                            smoothTP(giver.CFrame + Vector3.new(0, 7, 0))
+                            if giver.Parent == nil or (giver.Position - ogp).Magnitude > 1 then
+                                giver = getHousePart(tool.Name) or giver
+                                smoothTP(giver.CFrame + Vector3.new(0, 7, 0))
+                            end
+                            pcall(function() tool.Parent = character end)
+                            wait(1.2)
+                            local t = FindAllDeliveryTools(character)
+                            for i = 1, #t do
+                                if t[i] ~= tool then
+                                    t[i].Parent = player.Backpack
+                                end
+                            end
+                            wait()
+                            fatass = false
+                        else
+                            if fatass then
+                                wait(0.2)
+                            else
+                                wait(0.7)
+                            end
+                            pcall(function() tool.Parent = character end)
+                            wait()
+                            fatass = true
+                        end
+                        houseDelivered = houseDelivered + 1
+                        if houseDelivered < totalTools then
+                            wait(0.3)
+                        end
+                    end
+                end
+            end
+            if totalTools > 1 then
+                wait(3)
+            else
+                wait(2)
+            end
+        end
+        delTick = tick()
+    end
 end
-                		for i=1,#t do
-                		    if t[i] ~= tool then
-                			    t[i].Parent = player.Backpack
-                			end
-                		end
-						wait(2)
-						fatass=false
-					else
-						if fatass then
-							wait(0.2)
-						else
-							wait(0.7)
-						end
-						pcall(function() tool.Parent = character end)
-						wait()
-						fatass=true
-					end
-				end
-			end
-			delTick = tick()
-		end
-	end
 	tryCook()
 	if doSupplier then
 		local refill=false
