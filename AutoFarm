@@ -310,9 +310,9 @@ rightCamBtn.MouseButton1Click:Connect(function()
 end)
 
 --//subroutines
-local supplyCounts = {TomatoSauce=99,Cheese=99,Sausage=99,Pepperoni=99,Dough=99,Box=99,Dew=99}
+local supplyCounts = {TomatoSauce=99,Cheese=99,Sausage=99,Pepperoni=99,Dough=99,Box=99,MountainDew=99}
 for name in pairs(supplyCounts) do
-	local lbl = workspace.SupplyCounters.Model[name=="Dew" and "CounterMountainDew" or "Counter"..name].a.SG.Counter
+	local lbl = workspace.SupplyCounters.Model[name=="MountainDew" and "CounterMountainDew" or "Counter"..name].a.SG.Counter
 	supplyCounts[name]=tonumber(lbl.Text)
 	lbl.Changed:Connect(function()
 		supplyCounts[name]=tonumber(lbl.Text)
@@ -382,7 +382,7 @@ local function FindBoxingFoods()
 	return p,d
 end
 
-local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["2512571151"]="Dew",["2512441325"]="Dew"}
+local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["11874352009"]="Dew"}
 local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,Dew=0}
 local cookPtick=0
 local cookDtick=0
