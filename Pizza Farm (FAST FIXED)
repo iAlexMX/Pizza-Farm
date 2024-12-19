@@ -382,8 +382,8 @@ local function FindBoxingFoods()
 	return p,d
 end
 
-local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["2512571151"]="MountainDew",["2512441325"]="MountainDew"}
-local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,MountainDew=0}
+local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["11874352009"]="Dew"}
+local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,Dew=0}
 local cookPtick=0
 local cookDtick=0
 local cookWarned=false
@@ -399,7 +399,7 @@ local function getOrders()
 			if tempCookingDict[o]>0 then
 				--ignores oven pizzas, so new orders are priority
 				tempCookingDict[o]=tempCookingDict[o]-1
-			elseif (o=="MountainDew" and #workspace.AllMountainDew:GetChildren()>0) or (supplyCounts[o]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0) then
+			elseif (o=="Dew" and #workspace.AllMountainDew:GetChildren()>0) or (supplyCounts[o]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0) then
 				--need supplies
 				orders[#orders+1]=o
 			end
@@ -407,7 +407,7 @@ local function getOrders()
 	end
 	return orders
 end
-local function FindFirstMountainDew()
+local function FindFirstDew()
 	local children = workspace.AllMountainDew:GetChildren()
 	for i=1,#children do
 		local d = children[i]
@@ -416,7 +416,7 @@ local function FindFirstMountainDew()
 		end
 	end
 end
-local function FindBadMountainDew()
+local function FindBadDew()
 	local children = workspace.AllMountainDew:GetChildren()
 	for i=1,#children do
 		local d = children[i]
@@ -554,8 +554,8 @@ local function tryCook()
 		local order = getOrders()[1]
 		local topping
 		if order=="Pepperoni" or order=="Sausage" then topping=order end
-		local cookD = FindFirstMountainDew()
-		local badD = FindBadMountainDew()
+		local cookD = FindFirstDew()
+		local badD = FindBadDew()
 		local raw,cookP,trash
 		if topping then
 			--pepperoni order avoids sausage dough and vice verca
@@ -586,13 +586,13 @@ local function tryCook()
 				end
 			end
 			if order then
-				if order=="MountainDew" and cookD and tick()-cookDtick>0.8 then
-					--move MountainDew if ordered
+				if order=="Dew" and cookD and tick()-cookDtick>0.8 then
+					--move dew if ordered
 					cookDtick=tick()
 					didsomething=true
 					if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
 					network:FireServer("UpdateProperty", cookD, "CFrame", CFrame.new(53,4.68,36.5))
-				elseif order~="MountainDew" and raw and raw.Parent and supplyCounts[order]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0 then
+				elseif order~="Dew" and raw and raw.Parent and supplyCounts[order]>0 and supplyCounts.TomatoSauce>0 and supplyCounts.Cheese>0 then
 					--make pizza
 					if raw.Mesh.Scale.Y>1.5 then
 						if (root.Position-Vector3.new(36.64, 3.80, 54.11)).magnitude>9 then  smoothTP(CFrame.new(36.64, 3.80, 54.11)) wait(.1) end
