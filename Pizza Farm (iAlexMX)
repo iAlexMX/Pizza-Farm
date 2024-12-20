@@ -765,12 +765,12 @@ end
     local boxP, boxD = FindBoxingFoods()
     local closedBox, openBox, fullBox = FindBoxes()
 
-    if boxD and tick() - boxDtick > 0.8 then
+    if boxD and tick() - boxDtick > 0 then
         boxDtick = tick()
         didSomething = true
         
-        network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(62.7999992, 3.80000019, 2.70000076, 0, 0, 1, 0, 1, 0, -1, 0, 0))
-    end
+        network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63,4.9,-1,-1,0,0,0,1,0,0,0,-1))
+        end
 
     if fullBox then
         if fullBox.Name == "BoxOpen" then
@@ -778,7 +778,7 @@ end
             network:FireServer("CloseBox", fullBox)
         elseif tick() - boxPtick > 0.8 then
             didSomething = true
-            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.1999741, 5, 4.90000153, 0, 0, 1, 0, 1, 0, -1, 0, 0))
+            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.1999741, 4.5, 4.90000153, 0, 0, 1, 0, 1, 0, -1, 0, 0))
             boxPtick = tick()
         end
     end
