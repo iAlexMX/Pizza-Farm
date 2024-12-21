@@ -688,9 +688,9 @@ local function tryCook()
                     network:FireServer("AddIngredientToPizza", raw, "TomatoSauce")
                     wait()
                     network:FireServer("AddIngredientToPizza", raw, "Cheese")
-                    wait(0.2)
+                    wait(0.1)
                     network:FireServer("AddIngredientToPizza", raw, topping)
-                    wait(0.2)
+                    wait(0.1)
                     network:FireServer("UpdateProperty", raw, "CFrame", oven.Bottom.CFrame + Vector3.new(0, 0.7, 0))
                     oven.Door.ClickDetector.Detector:FireServer()
                     -- mark as cooking
@@ -765,12 +765,14 @@ end
     local boxP, boxD = FindBoxingFoods()
     local closedBox, openBox, fullBox = FindBoxes()
 
+    local soundId = "rbxassetid://3241682089"
+
     if boxD and tick() - boxDtick > 0 then
         boxDtick = tick()
         didSomething = true
         
         network:FireServer("UpdateProperty", boxD, "CFrame", CFrame.new(63,4.9,-1,-1,0,0,0,1,0,0,0,-1))
-        end
+    end
 
     if fullBox then
         if fullBox.Name == "BoxOpen" then
@@ -778,7 +780,7 @@ end
             network:FireServer("CloseBox", fullBox)
         elseif tick() - boxPtick > 0.8 then
             didSomething = true
-            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.1999741, 4.5, 4.90000153, 0, 0, 1, 0, 1, 0, -1, 0, 0))
+            network:FireServer("UpdateProperty", fullBox, "CFrame", CFrame.new(68.2,4.4,RNG:NextNumber(-3,-2),-1,0,0,0,1,0,0,0,-1))
             boxPtick = tick()
         end
     end
@@ -798,7 +800,25 @@ end
         network:FireServer("UpdateProperty", boxP, "CFrame", openBox.CFrame + Vector3.new(0, -2, 0))
         wait()
         network:FireServer("AssignPizzaToBox", openBox, boxP)
-    end
+
+        local sound1 = Instance.new("Sound")
+    sound1.SoundId = soundId
+    sound1.Volume = 1
+    sound1.Parent = openBox
+    sound1:Play()
+
+    local sound2 = Instance.new("Sound")
+    sound2.SoundId = soundId
+    sound2.Volume = 1
+    sound2.Parent = openBox
+    sound2:Play()
+
+    local sound3 = Instance.new("Sound")
+    sound3.SoundId = soundId
+    sound3.Volume = 1
+    sound3.Parent = openBox
+    sound3:Play()
+end
 
     if openBox and boxP then
         local touched = false
@@ -819,7 +839,7 @@ end
         end
 
         repeat
-            wait(0.1)
+            wait()
         until touched
 
         network:FireServer("CloseBox", openBox)
