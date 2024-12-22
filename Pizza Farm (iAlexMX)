@@ -859,7 +859,7 @@ end
 	if doDelivery then
     local wstools = FindAllDeliveryTools(workspace)
     if #wstools > 1 or (wstools[1] and ffc(wstools[1].Handle, "X10")) then
-        -- Obtener herramientas
+
         if (root.Position - Vector3.new(54.45, 4.02, -15)).magnitude > 9 then
             smoothTP(CFrame.new(54.45, 4.02, -15))
             wait(0.1)
@@ -884,6 +884,7 @@ end
     local bptools = FindAllDeliveryTools(player.Backpack)
     if #bptools >= settings.deliver_at and #bptools > 0 and tick() - delTick > 30 then
         local houseGroups = {}
+
         for i = 1, #bptools do
             local houseName = bptools[i].Name
             if not houseGroups[houseName] then
@@ -891,8 +892,19 @@ end
             end
             table.insert(houseGroups[houseName], bptools[i])
         end
-        local fatass = false
+
+        local sortedHouses = {}
         for houseName, tools in pairs(houseGroups) do
+            table.insert(sortedHouses, {houseName = houseName, toolCount = #tools})
+        end
+        table.sort(sortedHouses, function(a, b)
+            return a.toolCount > b.toolCount
+        end)
+
+        local fatass = false
+        for _, houseData in ipairs(sortedHouses) do
+            local houseName = houseData.houseName
+            local tools = houseGroups[houseName]
             local houseDelivered = 0
             local totalTools = #tools
             while houseDelivered < totalTools do
