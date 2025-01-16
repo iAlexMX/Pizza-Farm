@@ -450,7 +450,7 @@ local function FindBoxingFoods()
 	return p,d
 end
 
-local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["11874352009"]="Dew"}
+local orderDict={["3540529228"]="Cheese",["3540530535"]="Sausage",["3540529917"]="Pepperoni",["2512571151"]="Dew"}
 local cookingDict = {Cheese=0,Sausage=0,Pepperoni=0,Dew=0}
 local cookPtick=0
 local cookDtick=0
@@ -544,7 +544,7 @@ local function isFullyOpen(oven)
 	return oven.IsOpen.Value==true and (oven.Door.Meter.RotVelocity.Z^2)^.5<.0001
 end
 
-local bcolorToSupply = {["Dark orange"]="Sausage",["Bright blue"]="Pepperoni",["Bright yellow"]="Cheese",["Bright red"]="TomatoSauce",["Navy blue"]="MountainDew",["Brick yellow"]="Dough",["Light stone grey"]="Box",["Navy blue"]="MountainDew"}
+local bcolorToSupply = {["Dark orange"]="Sausage",["Bright blue"]="Pepperoni",["Bright yellow"]="Cheese",["Bright red"]="TomatoSauce",["Dark green"]="MountainDew",["Brick yellow"]="Dough",["Light stone grey"]="Box",["Dark green"]="MountainDew"}
 local supplyButtons = {}
 for i,v in ipairs(workspace.SupplyButtons:GetChildren()) do
 	supplyButtons[i] = v.Unpressed
