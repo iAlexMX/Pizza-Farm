@@ -2,6 +2,7 @@ local player = game:GetService("Players").LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local root = character:WaitForChild("HumanoidRootPart")
+local UserInputService = game:GetService("UserInputService")
 local active = false
 local MAX_DISTANCE = 30
 
@@ -100,10 +101,24 @@ player.CharacterAdded:Connect(function(newCharacter)
     UpdateCharacterReferences(newCharacter)
 end)
 
-ToggleButton.MouseButton1Click:Connect(function()
+local function ToggleActive()
     active = not active
     ToggleButton.Text = active and "On" or "Off"
     ToggleButton.BackgroundColor3 = active and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 0, 0)
+
+    if active then
+        print("ACTIVADO")
+    else
+        print("DESACTIVADO")
+    end
+end
+
+ToggleButton.MouseButton1Click:Connect(ToggleActive)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Z then
+        ToggleActive()
+    end
 end)
 
 DeleteButton.MouseButton1Click:Connect(function()
